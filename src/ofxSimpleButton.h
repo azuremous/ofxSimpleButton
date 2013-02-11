@@ -62,8 +62,10 @@ public:
     
     void render(ofEventArgs &event);
     void render();
-    void press(ofTouchEventArgs &touch);
+    void down(ofTouchEventArgs &touch);
+    void press(ofMouseEventArgs &mouse);
     void up(ofTouchEventArgs &touch);
+    void released(ofMouseEventArgs &mouse);
     bool pressed(float x, float y);
     
 };

@@ -17,6 +17,7 @@ buttonRender(true),
 bePressed(false)
 {
     
+    
 }
 
 void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, bool setManualRender, BUTTON_TYPE _buttonType, BUTTON_SHAPE _buttonShape, const ofColor &_color)
@@ -27,12 +28,21 @@ void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress,
     buttonColor = _color;
     AreaRect.set(x, y, w, h);
     
-    if (eventPress) ofAddListener(ofEvents.touchDown, this, &ofxSimpleButton::press);
-    
-    ofAddListener(ofEvents.touchUp, this, &ofxSimpleButton::up);
+    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
+     
+        if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
+        
+        ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
+        
+    }else{
+        
+        if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
+        
+        ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
+    }
     
     if (!setManualRender) {
-        ofAddListener(ofEvents.draw, this, &ofxSimpleButton::render);
+        ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
     }
 }
 
@@ -45,12 +55,21 @@ void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool event
     AreaRect.set(x, y, buttonImg.getWidth(), buttonImg.getHeight());
     bImgButton = true;
     
-    if (eventPress) ofAddListener(ofEvents.touchDown, this, &ofxSimpleButton::press);
-    
-    ofAddListener(ofEvents.touchUp, this, &ofxSimpleButton::up);
+    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
+        
+        if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
+        
+        ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
+        
+    }else{
+        
+        if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
+        
+        ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
+    }
     
     if (!setManualRender) {
-        ofAddListener(ofEvents.draw, this, &ofxSimpleButton::render);
+        ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
     }
 }
 
@@ -97,8 +116,8 @@ void ofxSimpleButton::render(){
             if (selected){
                 
                 ofSetColor(255, 255, 0);
-                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - 10,AreaRect.height - 10);}
-                else{ ofRect(5, 5, AreaRect.width - 10, AreaRect.height - 10);}
+                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
+                else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
                 
             }
             
@@ -145,8 +164,8 @@ void ofxSimpleButton::render(ofEventArgs &event)
             if (selected){
                 
                 ofSetColor(255, 255, 0);
-                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - 10,AreaRect.height - 10);}
-                else{ ofRect(5, 5, AreaRect.width - 10, AreaRect.height - 10);}
+                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
+                else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
                 
             }
             
@@ -155,9 +174,9 @@ void ofxSimpleButton::render(ofEventArgs &event)
     }
 }
 
-void ofxSimpleButton::press(ofTouchEventArgs &touch)
+void ofxSimpleButton::down(ofTouchEventArgs &touch)
 {
-    //cout<<"pressevent"<<endl;
+    
     if (touch.id == 0) {
         
         if (pressed(touch.x, touch.y)){
@@ -178,7 +197,26 @@ void ofxSimpleButton::press(ofTouchEventArgs &touch)
             
         }
     }
-    //cout<<"pressed:"<<selected<<endl;
+}
+
+void ofxSimpleButton::press(ofMouseEventArgs &mouse){
+    
+    if (pressed(mouse.x, mouse.y)){
+        bePressed = true;
+        
+        switch (buttonType) {
+            case 0:
+                selected = true;
+                break;
+            case 1:
+                selected = !selected;
+                break;
+                
+            default:
+                break;
+        }
+        
+    }
 }
 
 void ofxSimpleButton::up(ofTouchEventArgs &touch)
@@ -187,6 +225,12 @@ void ofxSimpleButton::up(ofTouchEventArgs &touch)
     if (!buttonType && selected) selected = false;
     bePressed = false;
     
+}
+
+void ofxSimpleButton::released(ofMouseEventArgs &mouse){
+    
+    if (!buttonType && selected) selected = false;
+    bePressed = false;
 }
 
 bool ofxSimpleButton::pressed(float x, float y)

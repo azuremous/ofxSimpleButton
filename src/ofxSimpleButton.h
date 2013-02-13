@@ -24,12 +24,18 @@ typedef enum {
 
 class ofxSimpleButton {
     
+private:
+    
+    bool buttonRender;
+    bool appear;
+    bool selected;
+    
 public:
     
     ofRectangle AreaRect;
     ofPoint namePos;
     
-    ofImage buttonImg;
+    ofImage buttonImg[2];
     ofColor buttonColor;
     
     BUTTON_TYPE buttonType;
@@ -38,17 +44,14 @@ public:
     string buttonName;
     
     bool bImgButton;
-    bool appear;
-    bool buttonRender;
     bool useName;
-    bool selected;
     bool bePressed;
     
     ofxSimpleButton();
     
-    void setup(float x, float y, float w, float h, bool eventPress, bool setManualRender = false, BUTTON_TYPE _buttonType = BUTTON, BUTTON_SHAPE _buttonShape = RECT_BUTTON, const ofColor &_color = 255);
+    void setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE _buttonType = BUTTON, BUTTON_SHAPE _buttonShape = RECT_BUTTON,bool setManualRender = false, const ofColor &_color = 255);
     
-    void setup(float x, float y, string buttonImageName, bool eventPress, bool setManualRender = false, BUTTON_TYPE _buttonType = BUTTON);
+    void setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE _buttonType = BUTTON, bool setManualRender = false);
     
     void setAppear(bool _appear){ appear = _appear; }
     void setRender(bool _render){ buttonRender = _render; }
@@ -66,7 +69,11 @@ public:
     void press(ofMouseEventArgs &mouse);
     void up(ofTouchEventArgs &touch);
     void released(ofMouseEventArgs &mouse);
+    void buttonAction();
     bool pressed(float x, float y);
+    bool getIsAppear() const;
+    bool getIsRender() const;
+    bool beSelected() const;
     
 };
 

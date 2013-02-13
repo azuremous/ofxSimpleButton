@@ -20,7 +20,7 @@ bePressed(false)
     
 }
 
-void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, bool setManualRender, BUTTON_TYPE _buttonType, BUTTON_SHAPE _buttonShape, const ofColor &_color)
+void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE _buttonType, BUTTON_SHAPE _buttonShape, bool setManualRender,const ofColor &_color)
 {
     
     setButtonType(_buttonType);
@@ -46,13 +46,28 @@ void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress,
     }
 }
 
-void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool eventPress, bool setManualRender, BUTTON_TYPE _buttonType)
+void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE _buttonType, bool setManualRender)
 {
     
     setButtonType(_buttonType);
-    buttonImg.loadImage(buttonImageName);
     
-    AreaRect.set(x, y, buttonImg.getWidth(), buttonImg.getHeight());
+    char * dummyName = new char[50];
+    sprintf(dummyName, ".png");
+    string _buttonImgName = buttonImageName;
+    _buttonImgName.append(dummyName);
+    
+    buttonImg[0].loadImage(_buttonImgName);
+    
+    string _buttonImgName_p = buttonImageName.append(1,'_');
+    _buttonImgName_p.append(dummyName);
+    
+    buttonImg[1].loadImage(_buttonImgName_p);
+    
+    _buttonImgName_p.clear();
+    _buttonImgName.clear();
+    delete [] dummyName;
+    
+    AreaRect.set(x, y, buttonImg[0].getWidth(), buttonImg[0].getHeight());
     bImgButton = true;
     
     if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
@@ -99,7 +114,8 @@ void ofxSimpleButton::render(){
             
             ofEnableAlphaBlending();
             ofSetColor(255);
-            buttonImg.draw(0, 0);
+            if (!selected) { buttonImg[0].draw(0, 0); }
+            else { buttonImg[1].draw(0, 0); }
             ofDisableAlphaBlending();
             
         }else {
@@ -147,7 +163,8 @@ void ofxSimpleButton::render(ofEventArgs &event)
             
             ofEnableAlphaBlending();
             ofSetColor(255);
-            buttonImg.draw(0, 0);
+            if (!selected) { buttonImg[0].draw(0, 0); }
+            else { buttonImg[1].draw(0, 0); }
             ofDisableAlphaBlending();
             
         }else {
@@ -177,46 +194,13 @@ void ofxSimpleButton::render(ofEventArgs &event)
 void ofxSimpleButton::down(ofTouchEventArgs &touch)
 {
     
-    if (touch.id == 0) {
-        
-        if (pressed(touch.x, touch.y)){
-            
-            bePressed = true;
-            
-            switch (buttonType) {
-                case 0:
-                    selected = true;
-                    break;
-                case 1:
-                    selected = !selected;
-                    break;
-                    
-                default:
-                    break;
-            }
-            
-        }
-    }
+    if (touch.id == 0 && pressed(touch.x, touch.y)) buttonAction();
 }
 
 void ofxSimpleButton::press(ofMouseEventArgs &mouse){
     
-    if (pressed(mouse.x, mouse.y)){
-        bePressed = true;
-        
-        switch (buttonType) {
-            case 0:
-                selected = true;
-                break;
-            case 1:
-                selected = !selected;
-                break;
-                
-            default:
-                break;
-        }
-        
-    }
+    if (pressed(mouse.x, mouse.y)) buttonAction();
+    
 }
 
 void ofxSimpleButton::up(ofTouchEventArgs &touch)
@@ -233,10 +217,42 @@ void ofxSimpleButton::released(ofMouseEventArgs &mouse){
     bePressed = false;
 }
 
+void ofxSimpleButton::buttonAction(){
+    
+    switch (buttonType) {
+        case 0:
+            selected = true;
+            break;
+        case 1:
+            selected = !selected;
+            break;
+            
+        default:
+            break;
+    }
+    
+}
+
 bool ofxSimpleButton::pressed(float x, float y)
 {
     
     if (!appear) return false;
-    return x>= AreaRect.x && x <= AreaRect.x + AreaRect.width && y >= AreaRect.y && y <= AreaRect.y + AreaRect.height ;
     
+    return bePressed = x>= AreaRect.x && x <= AreaRect.x + AreaRect.width && y >= AreaRect.y && y <= AreaRect.y + AreaRect.height ;
+    
+}
+bool ofxSimpleButton::getIsAppear() const{
+    
+    return appear;
+}
+
+
+bool ofxSimpleButton::getIsRender() const{
+    
+    return buttonRender;
+}
+
+bool ofxSimpleButton::beSelected() const{
+    
+    return selected;
 }

@@ -10,13 +10,13 @@
 
 ofxSimpleButton::ofxSimpleButton():
 bImgButton(false),
-appear(false),
+appear(true),
 useName(false),
 selected(false),
 buttonRender(true),
 bePressed(false)
 {
-    
+    pressedColor.set(255, 255, 0);
     
 }
 
@@ -96,6 +96,10 @@ void ofxSimpleButton::setName(string _buttonName,float name_x, float name_y)
     namePos.set(name_x, name_y);
 }
 
+void ofxSimpleButton::useMouseMoved(){
+    ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::moved);
+}
+
 void ofxSimpleButton::render(){
     
     if (buttonRender) {
@@ -131,7 +135,7 @@ void ofxSimpleButton::render(){
             
             if (selected){
                 
-                ofSetColor(255, 255, 0);
+                ofSetColor(pressedColor);
                 if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
                 else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
                 
@@ -203,18 +207,29 @@ void ofxSimpleButton::press(ofMouseEventArgs &mouse){
     
 }
 
+void ofxSimpleButton::press(float x, float y){
+    
+     if (pressed(x, y)) buttonAction();
+}
+
 void ofxSimpleButton::up(ofTouchEventArgs &touch)
 {
     
-    if (!buttonType && selected) selected = false;
-    bePressed = false;
+    if (!buttonType && selected) selected = bePressed = false;
     
 }
 
 void ofxSimpleButton::released(ofMouseEventArgs &mouse){
     
-    if (!buttonType && selected) selected = false;
-    bePressed = false;
+    if (!buttonType && selected) selected = bePressed = false;
+}
+
+void ofxSimpleButton::moved(ofMouseEventArgs &mouse){
+    if (pressed(mouse.x, mouse.y)){
+        buttonAction();
+    }else{
+        selected = false;
+    }
 }
 
 void ofxSimpleButton::buttonAction(){
@@ -225,9 +240,6 @@ void ofxSimpleButton::buttonAction(){
             break;
         case 1:
             selected = !selected;
-            break;
-            
-        default:
             break;
     }
     
@@ -252,7 +264,7 @@ bool ofxSimpleButton::getIsRender() const{
     return buttonRender;
 }
 
-bool ofxSimpleButton::beSelected() const{
+bool ofxSimpleButton::bSelected() const{
     
     return selected;
 }

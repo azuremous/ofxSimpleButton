@@ -30,9 +30,9 @@ private:
     bool appear;
     bool selected;
     
-public:
-    
     ofRectangle AreaRect;
+    
+public:
     ofPoint namePos;
     
     ofImage buttonImg[2];
@@ -73,6 +73,10 @@ public:
     bool getIsAppear() const;
     bool getIsRender() const;
     bool bSelected() const;
+    float getX() const { return AreaRect.x; }
+    float getY() const { return AreaRect.y; }
+    float getWidht() const { return AreaRect.width; }
+    float getHeight() const {return AreaRect.height; }
     
 };
 

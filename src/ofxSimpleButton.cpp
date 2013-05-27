@@ -131,8 +131,8 @@ void ofxSimpleButton::render(){
             
             if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width,AreaRect.height); }
             else { ofRect(0, 0, AreaRect.width, AreaRect.height);}
-            ofPopStyle();
             
+            ofFill();
             if (selected){
                 
                 ofSetColor(pressedColor);
@@ -140,7 +140,7 @@ void ofxSimpleButton::render(){
                 else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
                 
             }
-            
+            ofPopStyle();
         }
         ofPopMatrix();
     }
@@ -180,8 +180,8 @@ void ofxSimpleButton::render(ofEventArgs &event)
             
             if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width,AreaRect.height); }
             else { ofRect(0, 0, AreaRect.width, AreaRect.height);}
-            ofPopStyle();
             
+            ofFill();
             if (selected){
                 
                 ofSetColor(255, 255, 0);
@@ -189,7 +189,7 @@ void ofxSimpleButton::render(ofEventArgs &event)
                 else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
                 
             }
-            
+            ofPopStyle();
         }
         ofPopMatrix();
     }

@@ -42,12 +42,19 @@ void testApp::update(){
 void testApp::draw(){
     
     circleButton[1].render();
+    ofPushMatrix();
     ofPushStyle();
     ofEnableAlphaBlending();
     ofSetColor(255);
-    image[numImg].draw(400, 100);
+    ofTranslate(dummyButton.getX(), dummyButton.getY());
+    image[numImg].draw(0, 0);
     ofDisableAlphaBlending();
     ofPopStyle();
+    ofPopMatrix();
+    
+    
+    ofDrawBitmapString("image buttons", imageButton.getX(), imageButton.getY() - 3);
+    ofDrawBitmapString("firtly toggle button On", circleButton[1].getX(), circleButton[1].getY() - 10);
 
 }
 
@@ -96,7 +103,7 @@ void testApp::mouseReleased(int x, int y, int button){
         a_s = rectButton[1].getIsRender();
     }
     
-    circleButton[1].setAppear(circleButton[0].beSelected());//When circle button 0 be selected, circle button 1 will works.
+    circleButton[1].setAppear(circleButton[0].bSelected());//When circle button 0 be selected, circle button 1 will works.
     
     numImg = false;
     

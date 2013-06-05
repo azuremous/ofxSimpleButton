@@ -1,6 +1,5 @@
 //
 //  ofxSimpleButton.h
-//  ofxSimpleButton
 //
 //  Created by kim jung un a.k.a azuremous on 4/15/12.
 //  Copyright (c) 2012 azuremous.net All rights reserved.
@@ -12,7 +11,7 @@
 
 typedef enum {
     BUTTON,
-    TOGGLE
+    TOGGLE,
     
 }BUTTON_TYPE;
 
@@ -25,20 +24,13 @@ typedef enum {
 class ofxSimpleButton {
     
 private:
-    
-    bool buttonRender;
-    bool appear;
-    bool selected;
-    
     ofRectangle AreaRect;
-    
-public:
     ofPoint namePos;
-    
-    ofImage buttonImg[2];
     ofColor buttonColor;
     ofColor pressedColor;
     
+    ofImage buttonImg[2];
+
     BUTTON_TYPE buttonType;
     BUTTON_SHAPE buttonShape;
     
@@ -46,19 +38,32 @@ public:
     
     bool bImgButton;
     bool useName;
+    bool buttonRender;
+    bool appear;
+    bool selected;
+    
+protected:
+    
+    void buttonAction();
+    bool pressed(float x, float y);
+    
+public:
     bool bePressed;
     
-    ofxSimpleButton();
+    explicit ofxSimpleButton();
+    virtual~ofxSimpleButton();
     
-    void setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE _buttonType = BUTTON, BUTTON_SHAPE _buttonShape = RECT_BUTTON,bool setManualRender = false, const ofColor &_color = 255);
+    void setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE _buttonType = BUTTON, BUTTON_SHAPE _buttonShape = RECT_BUTTON, bool setManualRender = false, const ofColor &_color = 255);
     void setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE _buttonType = BUTTON, bool setManualRender = false);
     void setAppear(bool _appear){ appear = _appear; }
     void setRender(bool _render){ buttonRender = _render; }
-    void setName(string _buttonName,float name_x = 10, float name_y = 15);
+    void setName(string _buttonName, float name_x = 10, float name_y = 15);
     void setButtonType(BUTTON_TYPE _buttonType){ buttonType = _buttonType; }
     void setButtonShape(BUTTON_SHAPE _buttonShape){ buttonShape = _buttonShape; }
     void setColor(const ofColor &_color){ buttonColor = _color; }
     void setSelectedColor(const ofColor &_color){ pressedColor = _color; }
+    void setPos(float _x, float _y){ AreaRect.x = _x; AreaRect.y = _y; }
+    //event
     void useMouseMoved();
     void render(ofEventArgs &event);
     void render();
@@ -68,16 +73,38 @@ public:
     void press(float x, float y);
     void released(ofMouseEventArgs &mouse);
     void moved(ofMouseEventArgs &mouse);
-    void buttonAction();
-    bool pressed(float x, float y);
-    bool getIsAppear() const;
-    bool getIsRender() const;
-    bool bSelected() const;
-    float getX() const { return AreaRect.x; }
-    float getY() const { return AreaRect.y; }
-    float getWidht() const { return AreaRect.width; }
-    float getHeight() const {return AreaRect.height; }
     
+    bool getIsAppear() const { return appear; }
+    bool getIsRender() const { return buttonRender; }
+    bool bSelected() const { return selected; }
+    
+};
+
+class ofxSimpleSlider {
+private:
+    ofRectangle AreaRect;
+    ofColor SliderColor;
+    int value;
+    int MaxVlaue;
+    bool bHorz;
+    bool valueChanged;
+    
+protected:
+    void moveButtonTouch(ofTouchEventArgs &touch);
+    void moveButtonMouse(ofMouseEventArgs &mouse);
+    void resetValueTouch(ofTouchEventArgs &touch);
+    void resetValueMouse(ofMouseEventArgs &mouse);
+    
+public:
+    ofxSimpleButton button;
+    explicit ofxSimpleSlider();
+    virtual~ofxSimpleSlider();
+    
+    void setup(float x, float y, float w, float h, bool bHorizontal);
+    void setMaxValue(int _value){ MaxVlaue = _value; }
+    void render();
+    int getValue() const { return value; }
+    bool bSelected() const { return valueChanged; }
 };
 
 

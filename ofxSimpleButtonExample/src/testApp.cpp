@@ -80,16 +80,14 @@ void testApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button){
-    
-    if(rectButton[1].pressed(x, y)){ //if you setup eventPress is false, you can make your own action
-        
-        rectButton[1].buttonAction();
-        
+    rectButton[1].press(x, y);
+    dummyButton.press(x, y);
+    if(rectButton[1].bSelected()){ //if you setup eventPress is false, you can make your own action
         a_s = !a_s;
         rectButton[0].setRender(a_s);
     }
     
-    numImg = dummyButton.pressed(x, y);
+    numImg = dummyButton.bSelected();
 
 }
 
@@ -97,7 +95,7 @@ void testApp::mousePressed(int x, int y, int button){
 void testApp::mouseReleased(int x, int y, int button){
 
     
-    if (rectButton[0].bePressed) {
+    if (rectButton[0].bSelected()) {
         rectButton[1].setAppear(true);
         rectButton[1].setRender(rectButton[1].getIsAppear());
         a_s = rectButton[1].getIsRender();

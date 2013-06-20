@@ -101,7 +101,13 @@
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::useMouseMoved()
 {
-    ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::moved);
+    ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::movedMouse);
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::useTouchMoved()
+{
+    ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::movedTouch);
 }
 
 //--------------------------------------------------------------
@@ -113,8 +119,10 @@
         ofTranslate(AreaRect.x, AreaRect.y);
         
         if (useName) {
-            ofSetColor(255);
+            ofPushStyle();
+            ofSetColor(buttonColor);
             ofDrawBitmapString(buttonName, namePos);
+            ofPopStyle();
         }
         
         if (bImgButton) {
@@ -134,9 +142,11 @@
             ofPopStyle();
             
             if (selected){
+                ofPushStyle();
                 ofSetColor(pressedColor);
                 if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
                 else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
+                ofPopStyle();
             }
         }
         ofPopMatrix();
@@ -155,8 +165,10 @@
         ofTranslate(AreaRect.x, AreaRect.y);
         
         if (useName) {
-            ofSetColor(255);
+            ofPushStyle();
+            ofSetColor(buttonColor);
             ofDrawBitmapString(buttonName, namePos);
+            ofPopStyle();
         }
         
         if (bImgButton) {
@@ -175,9 +187,11 @@
             ofPopStyle();
             
             if (selected){
+                ofPushStyle();
                 ofSetColor(255, 255, 0);
                 if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
                 else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
+                ofPopStyle();
             }
         }
         ofPopMatrix();
@@ -205,17 +219,34 @@
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::up(ofTouchEventArgs &touch)
 {
-    if (!buttonType && selected) selected = bePressed = false;
+    if (!buttonType && selected){
+        selected = bePressed = false;
+    }else{
+        bePressed = false;
+    }
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::released(ofMouseEventArgs &mouse)
 {
-    if (!buttonType && selected) selected = bePressed = false;
+    if (!buttonType && selected){
+        selected = bePressed = false;
+    }else{
+        bePressed = false;
+    }
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::moved(ofMouseEventArgs &mouse){
+/*public */void ofxSimpleButton::movedTouch(ofTouchEventArgs &touch){
+    if (pressed(touch.x, touch.y)) {
+        buttonAction();
+    }else{
+        selected = false;
+    }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::movedMouse(ofMouseEventArgs &mouse){
     if (pressed(mouse.x, mouse.y)){
         buttonAction();
     }else{

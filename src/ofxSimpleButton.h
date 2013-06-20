@@ -46,9 +46,9 @@ protected:
     
     void buttonAction();
     bool pressed(float x, float y);
+    bool bePressed;
     
 public:
-    bool bePressed;
     
     explicit ofxSimpleButton();
     virtual~ofxSimpleButton();
@@ -65,6 +65,7 @@ public:
     void setPos(float _x, float _y){ AreaRect.x = _x; AreaRect.y = _y; }
     //event
     void useMouseMoved();
+    void useTouchMoved();
     void render(ofEventArgs &event);
     void render();
     void down(ofTouchEventArgs &touch);
@@ -72,11 +73,17 @@ public:
     void press(ofMouseEventArgs &mouse);
     void press(float x, float y);
     void released(ofMouseEventArgs &mouse);
-    void moved(ofMouseEventArgs &mouse);
+    void movedTouch(ofTouchEventArgs &touch);
+    void movedMouse(ofMouseEventArgs &mouse);
     
     bool getIsAppear() const { return appear; }
     bool getIsRender() const { return buttonRender; }
     bool bSelected() const { return selected; }
+    
+    float getX() const { return AreaRect.x; }
+    float getY() const { return AreaRect.y; }
+    float getWidht() const { return AreaRect.width; }
+    float getHeight() const {return AreaRect.height; }
     
 };
 

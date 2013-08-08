@@ -2,100 +2,106 @@
 //  ofxSimpleButton.cpp
 //
 //  Created by kim jung un a.k.a azuremous on 12/10/12.
-//  Copyright (c) 2012 azuremous.net All rights reserved.
+//  Copyright (c) 2012~ azuremous.net All rights reserved.
 //
 
 #include "ofxSimpleButton.h"
 
 //--------------------------------------------------------------
 /*public */ofxSimpleButton::ofxSimpleButton()
-:bImgButton(false)
-,appear(true)
-,useName(false)
-,selected(false)
-,buttonRender(true)
-,bePressed(false)
-{
-    pressedColor.set(255, 255, 0);
-    
-}
+:_bImgButton(false)
+,_useName(false)
+,_useValue(false)
+,_buttonRender(true)
+,_appear(true)
+,_selected(false)
+,_bePressed(false)
+,_buttonColor(ofColor::white)
+,_pressedColor(ofColor::yellow)
+{}
 
 //--------------------------------------------------------------
 /*public */ofxSimpleButton::~ofxSimpleButton(){}
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE _buttonType, BUTTON_SHAPE _buttonShape, bool setManualRender,const ofColor &_color)
+/*public */void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE buttonType, BUTTON_SHAPE buttonShape, bool manualRender,const ofColor &color)
 {
     
     setButtonType(_buttonType);
     setButtonShape(_buttonShape);
-    setAppear(true);
-    buttonColor = _color;
-    AreaRect.set(x, y, w, h);
+    if (!_appear) { setAppear(true); }
+    _buttonColor = color;
+    _areaRect.set(x, y, w, h);
     
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
+    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
      
         if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
         ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
         
-    }else{
+    }else{ //MAC_OS
         
         if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
         ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
     }
     
-    if (!setManualRender) {
-        ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
-    }
+    if (!manualRender) { ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render); }
     
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE _buttonType, bool setManualRender)//set image button
+/*public */void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE buttonType, bool manualRender)//set image button
 {
     
-    setButtonType(_buttonType);
+    setButtonType(buttonType);
     
     char * dummyName = new char[50];
     sprintf(dummyName, ".png");
     string _buttonImgName = buttonImageName;
     _buttonImgName.append(dummyName);
     
-    buttonImg[0].loadImage(_buttonImgName);
+    _buttonImg[0].loadImage(_buttonImgName);
     
     string _buttonImgName_p = buttonImageName.append(1,'_');
     _buttonImgName_p.append(dummyName);
     
-    buttonImg[1].loadImage(_buttonImgName_p);
+    _buttonImg[1].loadImage(_buttonImgName_p);
     
     _buttonImgName_p.clear();
     _buttonImgName.clear();
     delete [] dummyName;
     
     
-    setAppear(true);
-    AreaRect.set(x, y, buttonImg[0].getWidth(), buttonImg[0].getHeight());
-    bImgButton = true;
+    if (!_appear) { setAppear(true); }
+    _areaRect.set(x, y, _buttonImg[0].getWidth(), _buttonImg[0].getHeight());
+    _bImgButton = true;
     
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
+    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
         if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
         ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
         
-    }else{
+    }else{ //MAC_OS
         if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
         ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
     }
     
-    if (!setManualRender) ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
+    if (!manualRender) ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setName(string _buttonName,float name_x, float name_y){
+/*public */void ofxSimpleButton::setName(string buttonName, float name_x, float name_y){
     
-    buttonName = _buttonName;
-    useName = true;
-    namePos.set(name_x, name_y);
-    setAppear(true);
+    _buttonName = buttonName;
+    _useName = true;
+    _namePos.set(name_x, name_y);
+    if (!_appear) { setAppear(true); }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setValue(string buttonValue, float value_x, float value_y){
+    _buttonValue = buttonValue;
+    _useValue = true;
+    _valuePos.set(value_x, value_y);
+    if (!_appear) { setAppear(true); }
 }
 
 //--------------------------------------------------------------
@@ -113,39 +119,46 @@
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::render(){
     
-    if (buttonRender) {
+    if (_buttonRender) {
         
         ofPushMatrix();
-        ofTranslate(AreaRect.x, AreaRect.y);
+        ofTranslate(_areaRect.x, _areaRect.y);
         
-        if (useName) {
+        if (_useName) {
             ofPushStyle();
-            ofSetColor(buttonColor);
-            ofDrawBitmapString(buttonName, namePos);
+            ofSetColor(_buttonColor);
+            ofDrawBitmapString(_buttonName, _namePos);
             ofPopStyle();
         }
         
-        if (bImgButton) {
+        if (_useValue) {
+            ofPushStyle();
+            ofSetColor(_buttonColor);
+            ofDrawBitmapString(_buttonValue, _valuePos);
+            ofPopStyle();
+        }
+        
+        if (_bImgButton) {
             ofEnableAlphaBlending();
             ofSetColor(255);
-            if (!selected) { buttonImg[0].draw(0, 0); }
-            else { buttonImg[1].draw(0, 0); }
+            if (!_selected) { _buttonImg[0].draw(0, 0); }
+            else { _buttonImg[1].draw(0, 0); }
             ofDisableAlphaBlending();
         
         }else {
             ofPushStyle();
             ofNoFill();
             ofSetLineWidth(2);
-            ofSetColor(buttonColor,255);
-            if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width,AreaRect.height); }
-            else { ofRect(0, 0, AreaRect.width, AreaRect.height);}
+            ofSetColor(_buttonColor,255);
+            if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width,_areaRect.height); }
+            else { ofRect(0, 0, _areaRect.width, _areaRect.height);}
             ofPopStyle();
             
-            if (selected){
+            if (_selected){
                 ofPushStyle();
-                ofSetColor(pressedColor);
-                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
-                else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
+                ofSetColor(_pressedColor);
+                if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width - (_areaRect.width / 10 * 2),_areaRect.height - (_areaRect.width / 10 * 2));}
+                else{ ofRect(_areaRect.width / 10 , _areaRect.width / 10, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
                 ofPopStyle();
             }
         }
@@ -159,38 +172,45 @@
 /*public */void ofxSimpleButton::render(ofEventArgs &event)
 {
     
-    if (buttonRender) {
+    if (_buttonRender) {
         
         ofPushMatrix();
-        ofTranslate(AreaRect.x, AreaRect.y);
+        ofTranslate(_areaRect.x, _areaRect.y);
         
-        if (useName) {
+        if (_useName) {
             ofPushStyle();
-            ofSetColor(buttonColor);
-            ofDrawBitmapString(buttonName, namePos);
+            ofSetColor(_buttonColor);
+            ofDrawBitmapString(_buttonName, _namePos);
             ofPopStyle();
         }
         
-        if (bImgButton) {
+        if (_useValue) {
+            ofPushStyle();
+            ofSetColor(_buttonColor);
+            ofDrawBitmapString(_buttonValue, _valuePos);
+            ofPopStyle();
+        }
+        
+        if (_bImgButton) {
             ofEnableAlphaBlending();
             ofSetColor(255);
-            if (!selected) { buttonImg[0].draw(0, 0); }
-            else { buttonImg[1].draw(0, 0); }
+            if (!_selected) { _buttonImg[0].draw(0, 0); }
+            else { _buttonImg[1].draw(0, 0); }
             ofDisableAlphaBlending();
         }else {
             ofPushStyle();
             ofNoFill();
             ofSetLineWidth(2);
-            ofSetColor(buttonColor,255);
-            if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width,AreaRect.height); }
-            else { ofRect(0, 0, AreaRect.width, AreaRect.height);}
+            ofSetColor(_buttonColor,255);
+            if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width, _areaRect.height); }
+            else { ofRect(0, 0, _areaRect.width, _areaRect.height);}
             ofPopStyle();
             
-            if (selected){
+            if (_selected){
                 ofPushStyle();
                 ofSetColor(255, 255, 0);
-                if (buttonShape) { ofEllipse(AreaRect.width/2, AreaRect.height/2, AreaRect.width - (AreaRect.width / 10 * 2),AreaRect.height - (AreaRect.width / 10 * 2));}
-                else{ ofRect(AreaRect.width / 10 , AreaRect.width / 10, AreaRect.width - (AreaRect.width / 10 * 2), AreaRect.height - (AreaRect.width / 10 * 2));}
+                if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
+                else{ ofRect(_areaRect.width / 10 , _areaRect.width / 10, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
                 ofPopStyle();
             }
         }
@@ -211,58 +231,43 @@
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::press(float x, float y)
-{
-     if (pressed(x, y)) buttonAction();
-}
+/*public */void ofxSimpleButton::press(float x, float y) { if (pressed(x, y)) buttonAction(); }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::up(ofTouchEventArgs &touch)
 {
-    if (!buttonType && selected){
-        selected = bePressed = false;
-    }else{
-        bePressed = false;
-    }
+    if (!_buttonType && _selected) _selected = _bePressed = false;
+    else _bePressed = false;
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::released(ofMouseEventArgs &mouse)
 {
-    if (!buttonType && selected){
-        selected = bePressed = false;
-    }else{
-        bePressed = false;
-    }
+    if (!_buttonType && _selected) _selected = _bePressed = false;
+    else _bePressed = false;
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::movedTouch(ofTouchEventArgs &touch){
-    if (pressed(touch.x, touch.y)) {
-        buttonAction();
-    }else{
-        selected = false;
-    }
+    if (pressed(touch.x, touch.y)) buttonAction(); 
+    else _selected = false;
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::movedMouse(ofMouseEventArgs &mouse){
-    if (pressed(mouse.x, mouse.y)){
-        buttonAction();
-    }else{
-        selected = false;
-    }
+    if (pressed(mouse.x, mouse.y)) buttonAction();
+    else _selected = false;
 }
 
 //--------------------------------------------------------------
 /*protected */void ofxSimpleButton::buttonAction(){
     
-    switch (buttonType) {
+    switch (_buttonType) {
         case 0:
-            selected = true;
+            _selected = true;
             break;
         case 1:
-            selected = !selected;
+            _selected = !_selected;
             break;
     }
 }
@@ -270,92 +275,201 @@
 //--------------------------------------------------------------
 /*protected */bool ofxSimpleButton::pressed(float x, float y)
 {
-    if (!appear) return false;
-    return bePressed = x>= AreaRect.x && x <= AreaRect.x + AreaRect.width && y >= AreaRect.y && y <= AreaRect.y + AreaRect.height ;
+    if (!_appear) return false;
+    return _bePressed = x>= _areaRect.x && x <= _areaRect.x + _areaRect.width && y >= _areaRect.y && y <= _areaRect.y + _areaRect.height ;
 }
 
 //--------------------------------------------------------------
 /*public */ofxSimpleSlider::ofxSimpleSlider()
-:SliderColor(ofColor(255,255,255))
-,MaxVlaue(127)
-,valueChanged(false)
+:_valueChanged(false)
+,_sliderColor(ofColor::yellowGreen)
+
 {}
 
 //--------------------------------------------------------------
 /*public */ofxSimpleSlider::~ofxSimpleSlider(){}
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::setup(float x, float y, float w, float h, bool bHorizontal){
+/*public */void ofxSimpleSlider::setup(float x, float y, float w, float h, bool bHorizontal, bool setManualRender){
     
     if (bHorizontal) {
         button.setup(x, y, h, h, true, BUTTON, RECT_BUTTON, true);//set manual render;
     }else{
         button.setup(x, y, w, w, true, BUTTON, RECT_BUTTON, true);//set manual render;
     }
-    bHorz = bHorizontal;
-    AreaRect.set(x, y, w, h);
+    _bHorizon = bHorizontal;
+    _areaRect.set(x, y, w, h);
     
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){
+    setMinValue(0);
+    setMaxValue(127);
+    
+    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
         ofAddListener(ofEvents().touchDown, this, &ofxSimpleSlider::moveButtonTouch);
         ofAddListener(ofEvents().touchMoved, this, &ofxSimpleSlider::moveButtonTouch);
         ofAddListener(ofEvents().touchUp, this, &ofxSimpleSlider::resetValueTouch);
-    }else{
+    }else{ //MAC_OS
         ofAddListener(ofEvents().mousePressed, this, &ofxSimpleSlider::moveButtonMouse);
         ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleSlider::moveButtonMouse);
         ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleSlider::resetValueMouse);
+    }
+    if (!setManualRender) { ofAddListener(ofEvents().draw, this, &ofxSimpleSlider::render); }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleSlider::setName(string sliderName, float name_x, float name_y){
+    
+    _sliderName = sliderName;
+    _useName = true;
+    _namePos.set(name_x, name_y);
+    if (!_appear) { setAppear(true); }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleSlider::setValue(string sliderValue, float value_x, float value_y){
+    sliderValue = _sliderValue;
+    _useValue = true;
+    _valuePos.set(value_x, value_y);
+    if (!_appear) { setAppear(true); }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleSlider::render(ofEventArgs &event){
+    if (_appear) {
+        ofPushMatrix();
+        ofTranslate(_areaRect.x, _areaRect.y);
+        if (_useName) {
+            ofPushStyle();
+            ofSetColor(_sliderColor);
+            ofDrawBitmapString(_sliderName, _namePos);
+            ofPopStyle();
+        }
+        
+        if (_useValue) {
+            ofPushStyle();
+            ofSetColor(_sliderColor);
+            ofDrawBitmapString(_sliderValue, _valuePos);
+            ofPopStyle();
+        }
+        
+        ofPushStyle();
+        ofNoFill();
+        ofSetLineWidth(2);
+        ofSetColor(_sliderColor);
+        ofRect(0, 0, _areaRect.width, _areaRect.height);
+        ofPopStyle();
+        ofPopMatrix();
+        
+        button.render();
     }
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleSlider::render(){
-    
-    ofPushMatrix();
-    ofPushStyle();
-    ofNoFill();
-    ofSetLineWidth(2);
-    ofSetColor(SliderColor);
-    ofRect(AreaRect);
-    ofPopStyle();
-    ofPopMatrix();
-    button.render();
+    if (_appear) {
+        ofPushMatrix();
+        ofTranslate(_areaRect.x, _areaRect.y);
+        if (_useName) {
+            ofPushStyle();
+            ofSetColor(_sliderColor);
+            ofDrawBitmapString(_sliderName, _namePos);
+            ofPopStyle();
+        }
+        
+        if (_useValue) {
+            ofPushStyle();
+            ofSetColor(_sliderColor);
+            ofDrawBitmapString(_sliderValue, _valuePos);
+            ofPopStyle();
+        }
+        
+        ofPushStyle();
+        ofNoFill();
+        ofSetLineWidth(2);
+        ofSetColor(_sliderColor);
+        ofRect(0, 0, _areaRect.width, _areaRect.height);
+        ofPopStyle();
+        ofPopMatrix();
+        
+        button.render();
+    }
 }
+
+//--------------------------------------------------------------
+/*public */int ofxSimpleSlider::getMapValue(int min, int max){
+    int value = 0;
+    if (bSelected()) {
+        value = (int)line(getValue(), _minValue, _maxValue, min, max);
+        char * _valueString = new char[255];
+        sprintf(_valueString, "%d", value);
+        setValue(_valueString);
+        delete [] _valueString;
+    }
+    return value;
+}
+
+//--------------------------------------------------------------
+/*public */double ofxSimpleSlider::getMapValue(double min, double max){
+    double value = 0.0;
+    if (bSelected()) {
+        value = line(getValue(), _minValue, _maxValue, min, max);
+        char * _valueString = new char[255];
+        sprintf(_valueString, "%f", value);
+        setValue(_valueString);
+        delete [] _valueString;
+    }
+    return value;
+}
+
+//--------------------------------------------------------------
+/*protected */double ofxSimpleSlider::line(double val, double inMin, double inMax, double outMin, double outMax){
+    return ((val - inMin) / (inMax - inMin) * (outMax - outMin)) + outMin;
+}
+
 
 //--------------------------------------------------------------
 /*protected */void ofxSimpleSlider::moveButtonTouch(ofTouchEventArgs &touch){
-    
-    if (bHorz) {
-        if (touch.y > AreaRect.y - 3 && touch.y < AreaRect.y+ AreaRect.height + 3) {
-            float barwidth = touch.x;
-            if (barwidth <= AreaRect.x) { barwidth = AreaRect.x; }
-            else if (barwidth >= AreaRect.x + AreaRect.width - AreaRect.height){
-                barwidth = AreaRect.x + AreaRect.width - AreaRect.height;
+    int _gap = 3;
+    if (_appear) {
+        if (_bHorizon) {
+            if (touch.y > _areaRect.y - _gap && touch.y < _areaRect.y + _areaRect.height + _gap) {
+                if (touch.x > _areaRect.x - _gap && touch.x < _areaRect.x + _areaRect.width + _gap) {
+                    float barwidth = touch.x;
+                    if (barwidth <= _areaRect.x) { barwidth = _areaRect.x; }
+                    else if (barwidth >= _areaRect.x + _areaRect.width - _areaRect.height){
+                        barwidth = _areaRect.x + _areaRect.width - _areaRect.height;
+                    }
+                    _value = (int)line(barwidth, _areaRect.x, _areaRect.x + _areaRect.width - _areaRect.height, _minValue, _maxValue);
+                    button.setPos(barwidth, _areaRect.y);
+                    _valueChanged = true;
+                }
             }
-            value = (int)ofMap(barwidth, AreaRect.x, AreaRect.x + AreaRect.width - AreaRect.height, 0, MaxVlaue);
-            button.setPos(barwidth, AreaRect.y);
-            valueChanged = true;
         }
     }
 }
 
 //--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::resetValueTouch(ofTouchEventArgs &touch){ valueChanged = false; }
+/*protected */void ofxSimpleSlider::resetValueTouch(ofTouchEventArgs &touch){ _valueChanged = false; }
 
 //--------------------------------------------------------------
 /*protected */void ofxSimpleSlider::moveButtonMouse(ofMouseEventArgs &mouse){
-    
-    if (bHorz) {
-        if (mouse.y > AreaRect.y - 3 && mouse.y < AreaRect.y+ AreaRect.height + 3) {
-            float barwidth = mouse.x;
-            if (barwidth <= AreaRect.x) { barwidth = AreaRect.x; }
-            else if (barwidth >= AreaRect.x + AreaRect.width - AreaRect.height){
-                barwidth = AreaRect.x + AreaRect.width - AreaRect.height;
+    int _gap = 3;
+    if (_appear) {
+        if (_bHorizon) {
+            if (mouse.y > _areaRect.y - _gap && mouse.y < _areaRect.y + _areaRect.height + _gap) {
+                if (mouse.x > _areaRect.x - _gap && mouse.x < _areaRect.x + _areaRect.width + _gap) {
+                    float barwidth = mouse.x;
+                    if (barwidth <= _areaRect.x) { barwidth = _areaRect.x; }
+                    else if (barwidth >= _areaRect.x + _areaRect.width - _areaRect.height){
+                        barwidth = _areaRect.x + _areaRect.width - _areaRect.height;
+                    }
+                    _value = (int)line(barwidth, _areaRect.x, _areaRect.x + _areaRect.width - _areaRect.height, _minValue, _maxValue);
+                    button.setPos(barwidth, _areaRect.y);
+                    _valueChanged = true;
+                }
             }
-            value = (int)ofMap(barwidth, AreaRect.x, AreaRect.x + AreaRect.width - AreaRect.height, 0, MaxVlaue);
-            button.setPos(barwidth, AreaRect.y);
-            valueChanged = true;
         }
     }
 }
 
 //--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::resetValueMouse(ofMouseEventArgs &mouse){ valueChanged = false; }
+/*protected */void ofxSimpleSlider::resetValueMouse(ofMouseEventArgs &mouse){ _valueChanged = false; }

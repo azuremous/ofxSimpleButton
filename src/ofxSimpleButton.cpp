@@ -9,467 +9,406 @@
 
 //--------------------------------------------------------------
 /*public */ofxSimpleButton::ofxSimpleButton()
-:_bImgButton(false)
-,_useName(false)
-,_useValue(false)
-,_buttonRender(true)
-,_appear(true)
-,_selected(false)
-,_bePressed(false)
-,_buttonColor(ofColor::white)
-,_pressedColor(ofColor::yellow)
+:useName(false)
+,useValue(false)
+,bRender(false)
+,bAppear(false)
+,fixPos(true)
+,bSelect(false)
+,bToggle(false)
+,bDoubleTab(false)
+,b_c(ofColor::white)
+,b_b_c(ofColor::gray)
+,b_t_c(ofColor::yellow)
 {}
 
 //--------------------------------------------------------------
 /*public */ofxSimpleButton::~ofxSimpleButton(){}
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setup(float x, float y, float w, float h, bool eventPress, BUTTON_TYPE buttonType, BUTTON_SHAPE buttonShape, bool manualRender,const ofColor &color)
+/*public */bool ofxSimpleButton::setup(float x, float y, float w, float h){
+    
+    setType(TYPE_BUTTON); //default type is button
+    setShape(BUTTON_RECT); //defalut shape is rectangle
+    
+    b_rect.set(x, y, w, h); //set rectangle position and size
+    
+    if (w > 0 && h > 0 && !bAppear) {
+        setAppear(true);
+        setRender(true);
+        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
+            ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown);
+            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+        }else{
+            ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed);
+            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        }
+        ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
+        return bAppear;
+    }
+    ofLog(OF_LOG_ERROR, "Button's size is not correct. Button couldn't setup.");
+    return bAppear;
+}
+
+//--------------------------------------------------------------
+/*public */bool ofxSimpleButton::setup(float x, float y, float w, float h, bool useEvent, bool manualRender, TYPE_BUTTONS type, BUTTON_SHAPES shape, const ofColor &c)
 {
+    setType(type);
+    setShape(shape);
     
-    setButtonType(_buttonType);
-    setButtonShape(_buttonShape);
-    if (!_appear) { setAppear(true); }
-    _buttonColor = color;
-    _areaRect.set(x, y, w, h);
+    b_rect.set(x, y, w, h);
     
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
-     
-        if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
-        ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
+    if (w > 0 && h > 0 && !bAppear) {
+        setAppear(true);
+        b_c = c;
+        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
+            if (useEvent) { ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown); }
+            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+        }else{
+            if (useEvent) { ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed); }
+            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        }
         
-    }else{ //MAC_OS
+        if (!manualRender) {
+            setRender(true);
+            ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
+        }
         
-        if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
-        ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
+        return bAppear;
     }
     
-    if (!manualRender) { ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render); }
-    
+    ofLog(OF_LOG_ERROR, "Button's size is not correct. Button couldn't setup.");
+    return bAppear;
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setup(float x, float y, string buttonImageName, bool eventPress, BUTTON_TYPE buttonType, bool manualRender)//set image button
+/*public */bool ofxSimpleButton::setup(float x, float y, string imgRoute, bool useEvent, bool manualRender, TYPE_BUTTONS type)
 {
+    setType(type);
+    setShape(BUTTON_IMAGE);
     
-    setButtonType(buttonType);
+    //load image and add to vector
+    char * extention = new char[255];
+    sprintf(extention, ".png");
+    string _imgRoute = imgRoute;
+    _imgRoute.append(extention);
     
-    char * dummyName = new char[50];
-    sprintf(dummyName, ".png");
-    string _buttonImgName = buttonImageName;
-    _buttonImgName.append(dummyName);
-    
-    _buttonImg[0].loadImage(_buttonImgName);
-    
-    string _buttonImgName_p = buttonImageName.append(1,'_');
-    _buttonImgName_p.append(dummyName);
-    
-    _buttonImg[1].loadImage(_buttonImgName_p);
-    
-    _buttonImgName_p.clear();
-    _buttonImgName.clear();
-    delete [] dummyName;
-    
-    
-    if (!_appear) { setAppear(true); }
-    _areaRect.set(x, y, _buttonImg[0].getWidth(), _buttonImg[0].getHeight());
-    _bImgButton = true;
-    
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
-        if (eventPress) ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::down);
-        ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::up);
-        
-    }else{ //MAC_OS
-        if (eventPress) ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::press);
-        ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::released);
+    ofImage b;
+    if(b.loadImage(_imgRoute)) { b_img.push_back(b); }
+    else {
+        ofLog(OF_LOG_ERROR, "couldn't load image");
+        return false;
     }
     
-    if (!manualRender) ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::setName(string buttonName, float name_x, float name_y){
+    string _togglImgRoute = imgRoute.append(1,'_');
+    _togglImgRoute.append(extention);
     
-    _buttonName = buttonName;
-    _useName = true;
-    _namePos.set(name_x, name_y);
-    if (!_appear) { setAppear(true); }
+    if(b.loadImage(_imgRoute)){ b_img.push_back(b); }
+    
+    _togglImgRoute.clear();
+    _imgRoute.clear();
+    delete [] extention;
+    
+    if (b_img.size() > 0 && !bAppear) {
+        setAppear(true);
+        
+        float w = b_img[0].getWidth();
+        float h = b_img[0].getHeight();
+        b_rect.set(x, y, w, h);
+        
+        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
+            if (useEvent) { ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown); }
+            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+        }else{
+            if (useEvent) { ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed); }
+            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        }
+        
+        if (!manualRender) {
+            setRender(true);
+            ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
+        }
+        
+        return bAppear;
+    }
+    
+    ofLog(OF_LOG_ERROR, "Button couldn't setup.");
+    return bAppear;
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setValue(string buttonValue, float value_x, float value_y){
-    _buttonValue = buttonValue;
-    _useValue = true;
-    _valuePos.set(value_x, value_y);
-    if (!_appear) { setAppear(true); }
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::useMouseMoved()
+/*public */void ofxSimpleButton::setAppear(bool show)
 {
-    ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::movedMouse);
+    bAppear = show;
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::useTouchMoved()
+/*public */void ofxSimpleButton::setRender(bool magic)
 {
-    ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::movedTouch);
+    bRender = magic;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setType(TYPE_BUTTONS type)
+{
+    b_type = type;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setShape(BUTTON_SHAPES shape)
+{
+    b_shape = shape;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setColor(const ofColor &c)
+{
+    b_c = c;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setToggleColor(const ofColor &c)
+{
+    b_t_c = c;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setBackColor(const ofColor &c)
+{
+    b_b_c = c;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setPos(const ofPoint &p)
+{
+    setPos(p.x, p.y);
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setPos(float x, float y){
+    b_rect.x = x;
+    b_rect.y = y;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setName(string n, float n_x, float n_y){
+    if (!bAppear) {
+        ofLog(OF_LOG_ERROR, "Button is not initialized. First you need to setup.");
+        return;
+    }
+    b_info_text = n;
+    useName = true;
+    n_pos.set(n_x, n_y);
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setValue(string v, float v_x, float v_y){
+    if (!bAppear) {
+        ofLog(OF_LOG_ERROR, "Button is not initialized. First you need to setup.");
+        return;
+    }
+    b_val_text = v;
+    useValue = true;
+    v_pos.set(v_x, v_y);
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setFixPos(bool fix)
+{
+    fixPos = fix;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::resetToggle()
+{
+    bToggle = false;
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::render(){
     
-    if (_buttonRender) {
+    if (bRender) {
         
         ofPushMatrix();
-        ofTranslate(_areaRect.x, _areaRect.y);
+        ofTranslate(b_rect.x, b_rect.y);
         
-        if (_useName) {
-            ofPushStyle();
-            ofSetColor(_buttonColor);
-            ofDrawBitmapString(_buttonName, _namePos);
-            ofPopStyle();
-        }
-        
-        if (_useValue) {
-            ofPushStyle();
-            ofSetColor(_buttonColor);
-            ofDrawBitmapString(_buttonValue, _valuePos);
-            ofPopStyle();
-        }
-        
-        if (_bImgButton) {
+        if (b_img.size() > 0 && b_shape == BUTTON_IMAGE) {
             ofEnableAlphaBlending();
-            ofSetColor(255);
-            if (!_selected) { _buttonImg[0].draw(0, 0); }
-            else { _buttonImg[1].draw(0, 0); }
-            ofDisableAlphaBlending();
-        
-        }else {
-            ofPushStyle();
-            ofNoFill();
-            ofSetLineWidth(2);
-            ofSetColor(_buttonColor,255);
-            if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width,_areaRect.height); }
-            else { ofRect(0, 0, _areaRect.width, _areaRect.height);}
-            ofPopStyle();
-            
-            if (_selected){
-                ofPushStyle();
-                ofSetColor(_pressedColor);
-                if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width - (_areaRect.width / 10 * 2),_areaRect.height - (_areaRect.width / 10 * 2));}
-                else{ ofRect(_areaRect.width / 10 , _areaRect.width / 10, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
-                ofPopStyle();
+            ofSetColor(255, 255);
+            if (b_img.size() == 2) {
+                if (!bToggle) { b_img[0].draw(0, 0); }
+                else { b_img[1].draw(0, 0); }
+            }else{
+                b_img[0].draw(0, 0);
             }
-        }
-        ofPopMatrix();
-    }
-    
-}
-
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::render(ofEventArgs &event)
-{
-    
-    if (_buttonRender) {
-        
-        ofPushMatrix();
-        ofTranslate(_areaRect.x, _areaRect.y);
-        
-        if (_useName) {
-            ofPushStyle();
-            ofSetColor(_buttonColor);
-            ofDrawBitmapString(_buttonName, _namePos);
-            ofPopStyle();
-        }
-        
-        if (_useValue) {
-            ofPushStyle();
-            ofSetColor(_buttonColor);
-            ofDrawBitmapString(_buttonValue, _valuePos);
-            ofPopStyle();
-        }
-        
-        if (_bImgButton) {
-            ofEnableAlphaBlending();
-            ofSetColor(255);
-            if (!_selected) { _buttonImg[0].draw(0, 0); }
-            else { _buttonImg[1].draw(0, 0); }
             ofDisableAlphaBlending();
         }else {
             ofPushStyle();
-            ofNoFill();
-            ofSetLineWidth(2);
-            ofSetColor(_buttonColor,255);
-            if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width, _areaRect.height); }
-            else { ofRect(0, 0, _areaRect.width, _areaRect.height);}
-            ofPopStyle();
-            
-            if (_selected){
-                ofPushStyle();
-                ofSetColor(255, 255, 0);
-                if (_buttonShape) { ofEllipse(_areaRect.width/2, _areaRect.height/2, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
-                else{ ofRect(_areaRect.width / 10 , _areaRect.width / 10, _areaRect.width - (_areaRect.width / 10 * 2), _areaRect.height - (_areaRect.width / 10 * 2));}
-                ofPopStyle();
+            ofSetColor(b_b_c, 255);
+            if (b_shape == BUTTON_CIRCLE) {
+                ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
+            }else if (b_shape == BUTTON_RECT){
+                ofRect(0, 0, b_rect.width, b_rect.height);
+            }else if (b_shape == BUTTON_CUSTOM){
+                //using vertex?
             }
+            updateButtonColor();
+            if (b_shape == BUTTON_CIRCLE) {
+                ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
+            }else if (b_shape == BUTTON_RECT){
+                ofRect(0, 0, b_rect.width, b_rect.height);
+            }else if (b_shape == BUTTON_CUSTOM){
+                //using vertex?
+            }
+            ofPopStyle();
+        }
+        
+        if (useName) {
+            ofPushStyle();
+            ofSetColor(b_c);
+            ofDrawBitmapString(b_info_text, n_pos);
+            ofPopStyle();
+        }
+        
+        if (useValue) {
+            ofPushStyle();
+            ofSetColor(b_c);
+            ofDrawBitmapString(b_val_text, v_pos);
+            ofPopStyle();
         }
         ofPopMatrix();
     }
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::down(ofTouchEventArgs &touch)
-{
-    if (touch.id == 0 && pressed(touch.x, touch.y)) buttonAction();
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::press(ofMouseEventArgs &mouse)
-{
-    if (pressed(mouse.x, mouse.y)) buttonAction();
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::press(float x, float y) { if (pressed(x, y)) buttonAction(); }
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::up(ofTouchEventArgs &touch)
-{
-    if (!_buttonType && _selected) _selected = _bePressed = false;
-    else _bePressed = false;
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::released(ofMouseEventArgs &mouse)
-{
-    if (!_buttonType && _selected) _selected = _bePressed = false;
-    else _bePressed = false;
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::movedTouch(ofTouchEventArgs &touch){
-    if (pressed(touch.x, touch.y)) buttonAction(); 
-    else _selected = false;
-}
-
-//--------------------------------------------------------------
-/*public */void ofxSimpleButton::movedMouse(ofMouseEventArgs &mouse){
-    if (pressed(mouse.x, mouse.y)) buttonAction();
-    else _selected = false;
-}
-
-//--------------------------------------------------------------
-/*protected */void ofxSimpleButton::buttonAction(){
     
-    switch (_buttonType) {
-        case 0:
-            _selected = true;
-            break;
-        case 1:
-            _selected = !_selected;
-            break;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::mousePressed(float x, float y)
+{
+    if (isInside(x, y)) {
+        buttonAction(true);
     }
 }
 
 //--------------------------------------------------------------
-/*protected */bool ofxSimpleButton::pressed(float x, float y)
+/*public */void ofxSimpleButton::toggleShow(){
+    bAppear = !bAppear;
+    bRender = !bRender;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::hide()
 {
-    if (!_appear) return false;
-    return _bePressed = x>= _areaRect.x && x <= _areaRect.x + _areaRect.width && y >= _areaRect.y && y <= _areaRect.y + _areaRect.height ;
+    bAppear = bRender = false;
 }
 
 //--------------------------------------------------------------
-/*public */ofxSimpleSlider::ofxSimpleSlider()
-:_valueChanged(false)
-,_sliderColor(ofColor::yellowGreen)
-
-{}
-
-//--------------------------------------------------------------
-/*public */ofxSimpleSlider::~ofxSimpleSlider(){}
+/*public */void ofxSimpleButton::show()
+{
+    bAppear = bRender = true;
+}
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::setup(float x, float y, float w, float h, bool bHorizontal, bool setManualRender){
-    
-    if (bHorizontal) {
-        button.setup(x, y, h, h, true, BUTTON, RECT_BUTTON, true);//set manual render;
-    }else{
-        button.setup(x, y, w, w, true, BUTTON, RECT_BUTTON, true);//set manual render;
+/*protected */void ofxSimpleButton::render(ofEventArgs &event)
+{
+    render();
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::touchDown(ofTouchEventArgs &touch)
+{
+    if (touch.id == 0 && isInside(touch.x, touch.y)) {
+        buttonAction(true);
     }
-    _bHorizon = bHorizontal;
-    _areaRect.set(x, y, w, h);
     
-    setMinValue(0);
-    setMaxValue(127);
-    
-    if(ofGetTargetPlatform() == OF_TARGET_IPHONE){ //iOS
-        ofAddListener(ofEvents().touchDown, this, &ofxSimpleSlider::moveButtonTouch);
-        ofAddListener(ofEvents().touchMoved, this, &ofxSimpleSlider::moveButtonTouch);
-        ofAddListener(ofEvents().touchUp, this, &ofxSimpleSlider::resetValueTouch);
-    }else{ //MAC_OS
-        ofAddListener(ofEvents().mousePressed, this, &ofxSimpleSlider::moveButtonMouse);
-        ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleSlider::moveButtonMouse);
-        ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleSlider::resetValueMouse);
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::touchUp(ofTouchEventArgs &touch)
+{
+    if (b_type == TYPE_BUTTON) {
+        bSelect = bToggle = false;
+    }else if (b_type == TYPE_TOGGLE) {
+        bSelect = false;
     }
-    if (!setManualRender) { ofAddListener(ofEvents().draw, this, &ofxSimpleSlider::render); }
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::setName(string sliderName, float name_x, float name_y){
-    
-    _sliderName = sliderName;
-    _useName = true;
-    _namePos.set(name_x, name_y);
-    if (!_appear) { setAppear(true); }
+/*protected */void ofxSimpleButton::touchMoved(ofTouchEventArgs &touch){
+    if (!fixPos && bSelect) {
+        setPos(touch.x, touch.y);
+    }
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::setValue(string sliderValue, float value_x, float value_y){
-    sliderValue = _sliderValue;
-    _useValue = true;
-    _valuePos.set(value_x, value_y);
-    if (!_appear) { setAppear(true); }
+/*protected */void ofxSimpleButton::touchDoubleTap(ofTouchEventArgs &touch){
+    if (isInside(touch.x, touch.y)) { bDoubleTab = !bDoubleTab; }
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::render(ofEventArgs &event){
-    if (_appear) {
-        ofPushMatrix();
-        ofTranslate(_areaRect.x, _areaRect.y);
-        if (_useName) {
-            ofPushStyle();
-            ofSetColor(_sliderColor);
-            ofDrawBitmapString(_sliderName, _namePos);
-            ofPopStyle();
-        }
-        
-        if (_useValue) {
-            ofPushStyle();
-            ofSetColor(_sliderColor);
-            ofDrawBitmapString(_sliderValue, _valuePos);
-            ofPopStyle();
-        }
-        
-        ofPushStyle();
+/*protected */void ofxSimpleButton::mousePressed(ofMouseEventArgs &mouse)
+{
+    mousePressed(mouse.x, mouse.y);
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::mouseReleased(ofMouseEventArgs &mouse)
+{
+    if (b_type == TYPE_BUTTON) { bSelect = bToggle = false; }
+    else if (b_type == TYPE_TOGGLE) { bSelect = false; }
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::mouseMoved(ofMouseEventArgs &mouse){
+    if (!fixPos && bSelect) {
+        setPos(mouse.x, mouse.y);
+    }
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::mouseDragged(ofMouseEventArgs &mouse){
+    if (!fixPos && bSelect) {
+        setPos(mouse.x, mouse.y);
+    }
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::updateButtonColor(){
+    if (bToggle) {
+        ofFill();
+        ofSetLineWidth(1);
+        ofSetColor(b_t_c, 255);
+    }else {
         ofNoFill();
         ofSetLineWidth(2);
-        ofSetColor(_sliderColor);
-        ofRect(0, 0, _areaRect.width, _areaRect.height);
-        ofPopStyle();
-        ofPopMatrix();
-        
-        button.render();
+        ofSetColor(b_c, 255);
     }
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleSlider::render(){
-    if (_appear) {
-        ofPushMatrix();
-        ofTranslate(_areaRect.x, _areaRect.y);
-        if (_useName) {
-            ofPushStyle();
-            ofSetColor(_sliderColor);
-            ofDrawBitmapString(_sliderName, _namePos);
-            ofPopStyle();
-        }
-        
-        if (_useValue) {
-            ofPushStyle();
-            ofSetColor(_sliderColor);
-            ofDrawBitmapString(_sliderValue, _valuePos);
-            ofPopStyle();
-        }
-        
-        ofPushStyle();
-        ofNoFill();
-        ofSetLineWidth(2);
-        ofSetColor(_sliderColor);
-        ofRect(0, 0, _areaRect.width, _areaRect.height);
-        ofPopStyle();
-        ofPopMatrix();
-        
-        button.render();
+/*protected */void ofxSimpleButton::buttonAction(bool b){
+    
+    if (b_type == TYPE_BUTTON) {
+        bToggle = true;
+    }else if (b_type == TYPE_TOGGLE) {
+        bToggle = !bToggle;
     }
 }
 
 //--------------------------------------------------------------
-/*public */int ofxSimpleSlider::getMapValue(int min, int max){
-    int value = 0;
-    if (bSelected()) {
-        value = (int)line(getValue(), _minValue, _maxValue, min, max);
-        char * _valueString = new char[255];
-        sprintf(_valueString, "%d", value);
-        setValue(_valueString);
-        delete [] _valueString;
-    }
-    return value;
+/*protected */bool ofxSimpleButton::isInside(float x, float y)
+{
+    if (!bAppear) return false;
+    return  bSelect = x>= b_rect.x && x <= b_rect.x + b_rect.width && y >= b_rect.y && y <= b_rect.y + b_rect.height ;
 }
-
-//--------------------------------------------------------------
-/*public */double ofxSimpleSlider::getMapValue(double min, double max){
-    double value = 0.0;
-    if (bSelected()) {
-        value = line(getValue(), _minValue, _maxValue, min, max);
-        char * _valueString = new char[255];
-        sprintf(_valueString, "%f", value);
-        setValue(_valueString);
-        delete [] _valueString;
-    }
-    return value;
-}
-
-//--------------------------------------------------------------
-/*protected */double ofxSimpleSlider::line(double val, double inMin, double inMax, double outMin, double outMax){
-    return ((val - inMin) / (inMax - inMin) * (outMax - outMin)) + outMin;
-}
-
-
-//--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::moveButtonTouch(ofTouchEventArgs &touch){
-    int _gap = 3;
-    if (_appear) {
-        if (_bHorizon) {
-            if (touch.y > _areaRect.y - _gap && touch.y < _areaRect.y + _areaRect.height + _gap) {
-                if (touch.x > _areaRect.x - _gap && touch.x < _areaRect.x + _areaRect.width + _gap) {
-                    float barwidth = touch.x;
-                    if (barwidth <= _areaRect.x) { barwidth = _areaRect.x; }
-                    else if (barwidth >= _areaRect.x + _areaRect.width - _areaRect.height){
-                        barwidth = _areaRect.x + _areaRect.width - _areaRect.height;
-                    }
-                    _value = (int)line(barwidth, _areaRect.x, _areaRect.x + _areaRect.width - _areaRect.height, _minValue, _maxValue);
-                    button.setPos(barwidth, _areaRect.y);
-                    _valueChanged = true;
-                }
-            }
-        }
-    }
-}
-
-//--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::resetValueTouch(ofTouchEventArgs &touch){ _valueChanged = false; }
-
-//--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::moveButtonMouse(ofMouseEventArgs &mouse){
-    int _gap = 3;
-    if (_appear) {
-        if (_bHorizon) {
-            if (mouse.y > _areaRect.y - _gap && mouse.y < _areaRect.y + _areaRect.height + _gap) {
-                if (mouse.x > _areaRect.x - _gap && mouse.x < _areaRect.x + _areaRect.width + _gap) {
-                    float barwidth = mouse.x;
-                    if (barwidth <= _areaRect.x) { barwidth = _areaRect.x; }
-                    else if (barwidth >= _areaRect.x + _areaRect.width - _areaRect.height){
-                        barwidth = _areaRect.x + _areaRect.width - _areaRect.height;
-                    }
-                    _value = (int)line(barwidth, _areaRect.x, _areaRect.x + _areaRect.width - _areaRect.height, _minValue, _maxValue);
-                    button.setPos(barwidth, _areaRect.y);
-                    _valueChanged = true;
-                }
-            }
-        }
-    }
-}
-
-//--------------------------------------------------------------
-/*protected */void ofxSimpleSlider::resetValueMouse(ofMouseEventArgs &mouse){ _valueChanged = false; }

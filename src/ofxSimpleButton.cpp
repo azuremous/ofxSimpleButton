@@ -111,7 +111,7 @@
     string _togglImgRoute = imgRoute.append(1,'_');
     _togglImgRoute.append(extention);
     
-    if(b.loadImage(_imgRoute)){ b_img.push_back(b); }
+    if(b.loadImage(_togglImgRoute)){ b_img.push_back(b);}
     
     _togglImgRoute.clear();
     _imgRoute.clear();
@@ -291,6 +291,14 @@
         ofPopMatrix();
     }
     
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::touchDown(float x, float y)
+{
+    if (isInside(x, y)) {
+        buttonAction(true);
+    }
 }
 
 //--------------------------------------------------------------

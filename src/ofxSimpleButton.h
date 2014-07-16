@@ -95,6 +95,7 @@ public:
     
     void render();
     
+    void touchDown(float x, float y);
     void mousePressed(float x, float y);
     
     bool getIsAppear() const { return bAppear; }

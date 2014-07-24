@@ -32,13 +32,15 @@ private:
     ofColor b_b_c;
     ofColor b_t_c;
     
-    vector<ofImage> b_img;
-
+    vector<ofFbo> b_img_fbo;
+    ofFbo a_img_fbo;
+    
     TYPE_BUTTONS b_type;
     BUTTON_SHAPES b_shape;
     
     string b_info_text;
     string b_val_text;
+    string b_img_route;
     
     bool useName;
     bool useValue;
@@ -50,8 +52,18 @@ private:
     bool bSelect;
     bool bToggle;
     bool bDoubleTab;
+    bool bAnimation;
+    
+    bool bang;
+    bool startAni;
+    
+    int aniTime;
+    int changeTime;
     
 protected:
+    void resetAniTime(bool start);
+    
+    void update(ofEventArgs &event);
     void render(ofEventArgs &event);
     
     void touchDown(ofTouchEventArgs &touch);
@@ -85,9 +97,10 @@ public:
     void setBackColor(const ofColor &c);
     void setPos(const ofPoint & p);
     void setPos(float x, float y);
-    void setName(string n, float n_x = 10, float n_y = 15);
-    void setValue(string v, float v_x = 10, float v_y = - 10);
+    void setName(string n, float n_x = 0, float n_y = -10);
+    void setValue(string v, float v_x = 0, float v_y = -10);
     void setFixPos(bool fix);
+    void setAsAnimationButton(int time = 500);
     void resetToggle();
     void toggleShow();
     void hide();

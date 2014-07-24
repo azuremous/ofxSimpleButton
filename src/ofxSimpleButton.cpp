@@ -17,6 +17,11 @@
 ,bSelect(false)
 ,bToggle(false)
 ,bDoubleTab(false)
+,bAnimation(false)
+,bang(false)
+,startAni(false)
+,aniTime(0)
+,changeTime(500)
 ,b_c(ofColor::white)
 ,b_b_c(ofColor::gray)
 ,b_t_c(ofColor::yellow)
@@ -94,34 +99,49 @@
 {
     setType(type);
     setShape(BUTTON_IMAGE);
-    
+    b_img_route = imgRoute;
     //load image and add to vector
-    char * extention = new char[255];
-    sprintf(extention, ".png");
-    string _imgRoute = imgRoute;
-    _imgRoute.append(extention);
+    b_img_fbo.clear();
     
     ofImage b;
-    if(b.loadImage(_imgRoute)) { b_img.push_back(b); }
-    else {
+    if(b.loadImage(b_img_route+".png")) {
+        
+        ofFbo img_fbo;
+        img_fbo.allocate(b.getWidth(), b.getHeight());
+        img_fbo.begin();
+        ofClear(255,0);
+        img_fbo.end();
+        
+        img_fbo.begin();
+        b.draw(0, 0);
+        img_fbo.end();
+        
+        b_img_fbo.push_back(img_fbo);
+    }else {
         ofLog(OF_LOG_ERROR, "couldn't load image");
         return false;
     }
     
-    string _togglImgRoute = imgRoute.append(1,'_');
-    _togglImgRoute.append(extention);
+    if(b.loadImage(b_img_route+"_.png")){
+        
+        ofFbo img_fbo;
+        img_fbo.allocate(b.getWidth(), b.getHeight());
+        img_fbo.begin();
+        ofClear(255,0);
+        img_fbo.end();
+        
+        img_fbo.begin();
+        b.draw(0, 0);
+        img_fbo.end();
+        
+        b_img_fbo.push_back(img_fbo);
+    }
     
-    if(b.loadImage(_togglImgRoute)){ b_img.push_back(b);}
-    
-    _togglImgRoute.clear();
-    _imgRoute.clear();
-    delete [] extention;
-    
-    if (b_img.size() > 0 && !bAppear) {
+    if (b_img_fbo.size() > 0 && !bAppear) {
         setAppear(true);
         
-        float w = b_img[0].getWidth();
-        float h = b_img[0].getHeight();
+        float w = b_img_fbo[0].getWidth();
+        float h = b_img_fbo[0].getHeight();
         b_rect.set(x, y, w, h);
         
         if (ofGetTargetPlatform() == OF_TARGET_IOS) {
@@ -231,6 +251,30 @@
 }
 
 //--------------------------------------------------------------
+/*public */void ofxSimpleButton::setAsAnimationButton(int time){
+    
+    ofImage a;
+    if(!a.loadImage(b_img_route+"__.png")) return;
+    
+    a_img_fbo.allocate(a.getWidth(), a.getHeight());
+    
+    a_img_fbo.begin();
+    ofClear(255, 0);
+    a_img_fbo.end();
+    
+    a_img_fbo.begin();
+    a.draw(0, 0);
+    a_img_fbo.end();
+    
+    bAnimation = true;
+    ofAddListener(ofEvents().update, this, &ofxSimpleButton::update);
+    
+    aniTime = ofGetElapsedTimeMillis();
+    changeTime = time;
+    
+}
+
+//--------------------------------------------------------------
 /*public */void ofxSimpleButton::resetToggle()
 {
     bToggle = false;
@@ -244,15 +288,14 @@
         ofPushMatrix();
         ofTranslate(b_rect.x, b_rect.y);
         
-        if (b_img.size() > 0 && b_shape == BUTTON_IMAGE) {
+        if (b_img_fbo.size() > 0 && b_shape == BUTTON_IMAGE) {
             ofEnableAlphaBlending();
             ofSetColor(255, 255);
-            if (b_img.size() == 2) {
-                if (!bToggle) { b_img[0].draw(0, 0); }
-                else { b_img[1].draw(0, 0); }
-            }else{
-                b_img[0].draw(0, 0);
-            }
+           
+            if (b_img_fbo.size() == 2 && bToggle) { b_img_fbo[1].draw(0, 0); }
+            else if (bAnimation && bang) { a_img_fbo.draw(0, 0); }
+            else{ b_img_fbo[0].draw(0, 0); }
+        
             ofDisableAlphaBlending();
         }else {
             ofPushStyle();
@@ -319,12 +362,31 @@
 /*public */void ofxSimpleButton::hide()
 {
     bAppear = bRender = false;
+    if (bAnimation) { resetAniTime(bAppear); }
 }
 
 //--------------------------------------------------------------
 /*public */void ofxSimpleButton::show()
 {
     bAppear = bRender = true;
+    if (bAnimation) { resetAniTime(bAppear); }
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::resetAniTime(bool start){
+    startAni = start;
+    bang = false;
+    aniTime = ofGetElapsedTimeMillis();
+}
+
+//--------------------------------------------------------------
+/*protected */void ofxSimpleButton::update(ofEventArgs &event){
+    if (startAni) {
+        if (ofGetElapsedTimeMillis() - aniTime >= changeTime) {
+            bang =! bang;
+            aniTime = ofGetElapsedTimeMillis();
+        }
+    }
 }
 
 //--------------------------------------------------------------
@@ -355,7 +417,7 @@
 //--------------------------------------------------------------
 /*protected */void ofxSimpleButton::touchMoved(ofTouchEventArgs &touch){
     if (!fixPos && bSelect) {
-        setPos(touch.x, touch.y);
+        setPos(touch.x - b_rect.width/2, touch.y - b_rect.height/2);
     }
 }
 

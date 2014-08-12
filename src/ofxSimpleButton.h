@@ -29,7 +29,6 @@ private:
     ofPoint v_pos;
     
     ofColor b_c;
-    ofColor b_b_c;
     ofColor b_t_c;
     
     vector<ofFbo> b_img_fbo;
@@ -94,7 +93,6 @@ public:
     void setShape(BUTTON_SHAPES shape);
     void setColor(const ofColor &c);
     void setToggleColor(const ofColor &c);
-    void setBackColor(const ofColor &c);
     void setPos(const ofPoint & p);
     void setPos(float x, float y);
     void setName(string n, float n_x = 0, float n_y = -10);
@@ -121,6 +119,171 @@ public:
     float getY() const { return b_rect.y; }
     float getWidht() const { return b_rect.width; }
     float getHeight() const {return b_rect.height; }
+    
+};
+
+class ofxSimpleSlider{
+private:
+    ofxSimpleButton *sliderButton;
+    
+    ofxSimpleButton *plusButton;
+    ofxSimpleButton *minusButton;
+    
+    ofRectangle s_rect;
+    float max_v;
+    float min_v;
+    float v;
+    float d_v;
+    float m_v;
+    float s_v;
+    
+    bool useCountButton;
+    bool hideValue;
+    ofColor s_c;
+    
+    string s_name;
+    
+public:
+    explicit ofxSimpleSlider():min_v(0.0), max_v(1.0),d_v(0.5),s_v(100.0),useCountButton(false),hideValue(false),s_c(ofColor::white){}
+    ~ofxSimpleSlider() {
+        if(useCountButton){
+            delete plusButton;
+            delete minusButton;
+        }
+        delete sliderButton;
+    }
+    void setup(string name, float x, float y, float w, float h, float min, float max, float defalut){
+        s_name = name;
+        s_rect.set(x, y, w, h);
+        
+        sliderButton = new ofxSimpleButton();
+        sliderButton->setup(x, y, h, h, true, true);
+        sliderButton->show();
+        
+        min_v = min;
+        max_v = max;
+        if (defalut < min_v || defalut > max_v) { d_v = (max_v - min_v)/2.0; }
+        else { d_v = defalut; }
+        m_v = (max_v - min_v) / s_v;
+        v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+        sliderButton->setPos(v, sliderButton->getY());
+        
+        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
+            ofAddListener(ofEvents().touchDown, this, &ofxSimpleSlider::touchDown);
+            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleSlider::touchMoved);
+            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleSlider::touchDoubleTap);
+            ofAddListener(ofEvents().touchUp, this, &ofxSimpleSlider::touchUp);
+        }else{
+            ofAddListener(ofEvents().mousePressed , this, &ofxSimpleSlider::mousePressed);
+            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleSlider::mouseReleased);
+            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleSlider::mouseMoved);
+            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleSlider::mouseDragged);
+        }
+        
+        ofAddListener(ofEvents().draw, this, &ofxSimpleSlider::render);
+    }
+    
+    void setDivide(float s) { m_v = (max_v - min_v) / s; }
+    void setAmount(float a) { m_v = a; }
+    void setColor(const ofColor &c) { s_c = c; }
+    
+    void showButtons() {
+        if(!useCountButton){
+            useCountButton = true;
+            minusButton = new ofxSimpleButton();
+            plusButton = new ofxSimpleButton();
+            minusButton->setup(s_rect.x + s_rect.getWidth() + 10, s_rect.y, sliderButton->getWidht(), sliderButton->getHeight(), false, true);
+            
+            plusButton->setup(minusButton->getX() + minusButton->getWidht() + 10, s_rect.y, sliderButton->getWidht(), sliderButton->getHeight(), false, true);
+            minusButton->setName("-", minusButton->getWidht()/2 - 3, -3);
+            plusButton->setName("+", plusButton->getWidht()/2 - 3, -3);
+        }
+        plusButton->show();
+        minusButton->show();
+    }
+    
+    void update(){ }
+    
+    void hideButtons() {
+        plusButton->hide();
+        minusButton->hide();
+    }
+    
+    void mouseDragged(int x, int y){
+        setButtonPos(x, y);
+    }
+    
+    void mousePressed(int x, int y){
+        setButtonPos(x, y);
+        
+        if (useCountButton) {
+            minusButton->mousePressed(x, y);
+            plusButton->mousePressed(x, y);
+            
+            if (minusButton->getIsSelect()) {
+                d_v -= m_v;
+                if (d_v <= min_v) d_v = min_v;
+                v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+                sliderButton->setPos(v, sliderButton->getY());
+            }else if (plusButton->getIsSelect()){
+                d_v += m_v;
+                if (d_v >= max_v) d_v = max_v;
+                v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+                sliderButton->setPos(v, sliderButton->getY());
+            }
+        }
+    }
+    
+    void mouseReleased(int x, int y){
+        
+    }
+    
+    void mouseMoved(int x, int y){
+        
+    }
+    
+    void setButtonPos(int x, int y){
+        if (y >= s_rect.y && y <= s_rect.y + s_rect.getHeight() && x >= s_rect.x && x <= s_rect.x + s_rect.getWidth()) {
+            v = x - sliderButton->getWidht()/2;
+            if (v <= s_rect.x) v = s_rect.x;
+            if (v >= s_rect.x + s_rect.getWidth() - sliderButton->getWidht()) v = s_rect.x + s_rect.getWidth() - sliderButton->getWidht();
+            d_v = ofMap(v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht(), min_v, max_v);
+            sliderButton->setPos(v, sliderButton->getY());
+        }
+    }
+    
+    void render(ofEventArgs &event) { render(); }
+    void mousePressed(ofMouseEventArgs &mouse) { mousePressed(mouse.x, mouse.y); }
+    void mouseDragged(ofMouseEventArgs &mouse) { mouseDragged(mouse.x, mouse.y); }
+    void mouseReleased(ofMouseEventArgs &mouse) { mouseReleased(mouse.x, mouse.y); }
+    void mouseMoved(ofMouseEventArgs &mouse) { mouseMoved(mouse.x, mouse.y); }
+    
+    void touchDown(ofTouchEventArgs &touch) { }
+    void touchUp(ofTouchEventArgs &touch) { }
+    void touchMoved(ofTouchEventArgs &touch) { }
+    void touchDoubleTap(ofTouchEventArgs &touch) { }
+    
+    void render(){
+        
+        sliderButton->render();
+        
+        ofPushStyle();
+        ofNoFill();
+        ofSetColor(s_c);
+        ofRect(s_rect);
+        ofPopStyle();
+        
+        if(useCountButton){
+            plusButton->render();
+            minusButton->render();
+        }
+        if (!hideValue) {
+            ofSetColor(255);
+            ofDrawBitmapString(s_name + " "+ofToString(d_v), s_rect.x, s_rect.y - 2);
+        }
+    }
+    
+    float getValue() { return d_v; }
     
 };
 

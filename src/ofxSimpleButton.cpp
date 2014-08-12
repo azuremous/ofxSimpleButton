@@ -23,7 +23,6 @@
 ,aniTime(0)
 ,changeTime(500)
 ,b_c(ofColor::white)
-,b_b_c(ofColor::gray)
 ,b_t_c(ofColor::yellow)
 {}
 
@@ -205,12 +204,6 @@
 }
 
 //--------------------------------------------------------------
-/*public */void ofxSimpleButton::setBackColor(const ofColor &c)
-{
-    b_b_c = c;
-}
-
-//--------------------------------------------------------------
 /*public */void ofxSimpleButton::setPos(const ofPoint &p)
 {
     setPos(p.x, p.y);
@@ -299,14 +292,7 @@
             ofDisableAlphaBlending();
         }else {
             ofPushStyle();
-            ofSetColor(b_b_c, 255);
-            if (b_shape == BUTTON_CIRCLE) {
-                ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
-            }else if (b_shape == BUTTON_RECT){
-                ofRect(0, 0, b_rect.width, b_rect.height);
-            }else if (b_shape == BUTTON_CUSTOM){
-                //using vertex?
-            }
+            ofFill();
             updateButtonColor();
             if (b_shape == BUTTON_CIRCLE) {
                 ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
@@ -455,15 +441,9 @@
 
 //--------------------------------------------------------------
 /*protected */void ofxSimpleButton::updateButtonColor(){
-    if (bToggle) {
-        ofFill();
-        ofSetLineWidth(1);
-        ofSetColor(b_t_c, 255);
-    }else {
-        ofNoFill();
-        ofSetLineWidth(2);
-        ofSetColor(b_c, 255);
-    }
+
+    if (bToggle) { ofSetColor(b_t_c, 255); }
+    else { ofSetColor(b_c, 255); }
 }
 
 //--------------------------------------------------------------

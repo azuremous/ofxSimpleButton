@@ -185,7 +185,10 @@ public:
     
     void setDivide(float s) { m_v = (max_v - min_v) / s; }
     void setAmount(float a) { m_v = a; }
-    void setColor(const ofColor &c) { s_c = c; }
+    void setColor(const ofColor &c) {
+        s_c = c;
+        sliderButton->setColor(s_c);
+    }
     
     void showButtons() {
         if(!useCountButton){
@@ -200,6 +203,9 @@ public:
         }
         plusButton->show();
         minusButton->show();
+        
+        plusButton->setColor(s_c);
+        minusButton->setColor(s_c);
     }
     
     void update(){ }
@@ -278,8 +284,10 @@ public:
             minusButton->render();
         }
         if (!hideValue) {
-            ofSetColor(255);
+            ofPushStyle();
+            ofSetColor(s_c);
             ofDrawBitmapString(s_name + " "+ofToString(d_v), s_rect.x, s_rect.y - 2);
+            ofPopStyle();
         }
     }
     

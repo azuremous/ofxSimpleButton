@@ -99,6 +99,7 @@ public:
     void setValue(string v, float v_x = 0, float v_y = -10);
     void setFixPos(bool fix);
     void setAsAnimationButton(int time = 500);
+    void toggleOn() { bToggle = true; }
     void resetToggle();
     void toggleShow();
     void hide();

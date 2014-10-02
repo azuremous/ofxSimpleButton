@@ -306,14 +306,16 @@
         
         if (useName) {
             ofPushStyle();
-            ofSetColor(b_c);
+            if (bToggle) { ofSetColor(b_c, 255); }
+            else { ofSetColor(b_t_c, 255); }
             ofDrawBitmapString(b_info_text, n_pos);
             ofPopStyle();
         }
         
         if (useValue) {
             ofPushStyle();
-            ofSetColor(b_c);
+            if (bToggle) { ofSetColor(b_c, 255); }
+            else { ofSetColor(b_t_c, 255); }
             ofDrawBitmapString(b_val_text, v_pos);
             ofPopStyle();
         }

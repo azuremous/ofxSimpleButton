@@ -83,7 +83,7 @@ public:
     explicit ofxSimpleButton();
     virtual~ofxSimpleButton();
     
-    bool setup(float x, float y, float w = 50, float h = 50);
+    bool setup(float x, float y, float w = 50, float h = 50, bool useEvent = false);
     bool setup(float x, float y, float w, float h, bool useEvent, bool manualRender, TYPE_BUTTONS type = TYPE_BUTTON, BUTTON_SHAPES shape = BUTTON_RECT, const ofColor &c = ofColor::white);
     bool setup(float x, float y, string imgRoute, bool useEvent = true, bool manualRender = false, TYPE_BUTTONS type = TYPE_BUTTON);
     
@@ -99,7 +99,6 @@ public:
     void setValue(string v, float v_x = 0, float v_y = -10);
     void setFixPos(bool fix);
     void setAsAnimationButton(int time = 500);
-    void toggleOn() { bToggle = true; }
     void resetToggle();
     void toggleShow();
     void hide();
@@ -108,7 +107,14 @@ public:
     void render();
     
     void touchDown(float x, float y);
+    void touchUp();
+    void touchMoved(float x, float y);
+    void touchDoubleTap(float x, float y);
+    
     void mousePressed(float x, float y);
+    void mouseReleased();
+    void mouseMoved(float x, float y);
+    void mouseDragged(float x, float y);
     
     bool getIsAppear() const { return bAppear; }
     bool getIsRender() const { return bRender; }

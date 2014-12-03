@@ -30,7 +30,7 @@
 /*public */ofxSimpleButton::~ofxSimpleButton(){}
 
 //--------------------------------------------------------------
-/*public */bool ofxSimpleButton::setup(float x, float y, float w, float h){
+/*public */bool ofxSimpleButton::setup(float x, float y, float w, float h, bool useEvent){
     
     setType(TYPE_BUTTON); //default type is button
     setShape(BUTTON_RECT); //defalut shape is rectangle
@@ -40,18 +40,20 @@
     if (w > 0 && h > 0 && !bAppear) {
         setAppear(true);
         setRender(true);
-        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
-            ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown);
-            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
-            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
-            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
-        }else{
-            ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed);
-            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
-            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
-            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        if (useEvent) {
+            if (ofGetTargetPlatform() == OF_TARGET_IOS || ofGetTargetPlatform() == OF_TARGET_ANDROID) {
+                ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown);
+                ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+                ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+                ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+            }else{
+                ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed);
+                ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+                ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+                ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+            }
+            ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
         }
-        ofAddListener(ofEvents().draw, this, &ofxSimpleButton::render);
         return bAppear;
     }
     ofLog(OF_LOG_ERROR, "Button's size is not correct. Button couldn't setup.");
@@ -69,16 +71,18 @@
     if (w > 0 && h > 0 && !bAppear) {
         setAppear(true);
         b_c = c;
-        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
-            if (useEvent) { ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown); }
-            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
-            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
-            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
-        }else{
-            if (useEvent) { ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed); }
-            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
-            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
-            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        if (useEvent) {
+            if (ofGetTargetPlatform() == OF_TARGET_IOS || ofGetTargetPlatform() == OF_TARGET_ANDROID) {
+                ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown);
+                ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+                ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+                ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+            }else{
+                ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed);
+                ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+                ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+                ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+            }
         }
         
         if (!manualRender) {
@@ -143,16 +147,18 @@
         float h = b_img_fbo[0].getHeight();
         b_rect.set(x, y, w, h);
         
-        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
-            if (useEvent) { ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown); }
-            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
-            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
-            ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
-        }else{
-            if (useEvent) { ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed); }
-            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
-            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
-            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+        if (useEvent) {
+            if (ofGetTargetPlatform() == OF_TARGET_IOS || ofGetTargetPlatform() == OF_TARGET_ANDROID) {
+                ofAddListener(ofEvents().touchDown, this, &ofxSimpleButton::touchDown);
+                ofAddListener(ofEvents().touchMoved, this, &ofxSimpleButton::touchMoved);
+                ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleButton::touchDoubleTap);
+                ofAddListener(ofEvents().touchUp, this, &ofxSimpleButton::touchUp);
+            }else{
+                ofAddListener(ofEvents().mousePressed , this, &ofxSimpleButton::mousePressed);
+                ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleButton::mouseReleased);
+                ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleButton::mouseMoved);
+                ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleButton::mouseDragged);
+            }
         }
         
         if (!manualRender) {
@@ -306,16 +312,14 @@
         
         if (useName) {
             ofPushStyle();
-            if (bToggle) { ofSetColor(b_c, 255); }
-            else { ofSetColor(b_t_c, 255); }
+            ofSetColor(b_c);
             ofDrawBitmapString(b_info_text, n_pos);
             ofPopStyle();
         }
         
         if (useValue) {
             ofPushStyle();
-            if (bToggle) { ofSetColor(b_c, 255); }
-            else { ofSetColor(b_t_c, 255); }
+            ofSetColor(b_c);
             ofDrawBitmapString(b_val_text, v_pos);
             ofPopStyle();
         }
@@ -333,10 +337,52 @@
 }
 
 //--------------------------------------------------------------
+/*public */void ofxSimpleButton::touchUp(){
+    if (b_type == TYPE_BUTTON) {
+        bSelect = bToggle = false;
+    }else if (b_type == TYPE_TOGGLE) {
+        bSelect = false;
+    }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::touchMoved(float x, float y){
+    if (!fixPos && bSelect) {
+        setPos(x - b_rect.width/2, y - b_rect.height/2);
+    }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::touchDoubleTap(float x, float y){
+    if (isInside(x, y)) { bDoubleTab = !bDoubleTab; }
+}
+
+//--------------------------------------------------------------
 /*public */void ofxSimpleButton::mousePressed(float x, float y)
 {
     if (isInside(x, y)) {
         buttonAction(true);
+    }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::mouseReleased(){
+    if (b_type == TYPE_BUTTON) { bSelect = bToggle = false; }
+    else if (b_type == TYPE_TOGGLE) { bSelect = false; }
+
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::mouseMoved(float x, float y){
+    if (!fixPos && bSelect) {
+        setPos(x, y);
+    }
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::mouseDragged(float x, float y){
+    if (!fixPos && bSelect) {
+        setPos(x, y);
     }
 }
 

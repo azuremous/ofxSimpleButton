@@ -116,6 +116,7 @@
         img_fbo.end();
         
         img_fbo.begin();
+        ofSetColor(255);
         b.draw(0, 0);
         img_fbo.end();
         
@@ -134,6 +135,7 @@
         img_fbo.end();
         
         img_fbo.begin();
+        ofSetColor(255);
         b.draw(0, 0);
         img_fbo.end();
         
@@ -285,17 +287,19 @@
     if (bRender) {
         
         ofPushMatrix();
+        ofPushStyle();
         ofTranslate(b_rect.x, b_rect.y);
         
         if (b_img_fbo.size() > 0 && b_shape == BUTTON_IMAGE) {
+            ofPushStyle();
             ofEnableAlphaBlending();
-            ofSetColor(255, 255);
+            ofSetColor(b_c, 255);
            
             if (b_img_fbo.size() == 2 && bToggle) { b_img_fbo[1].draw(0, 0); }
             else if (bAnimation && bang) { a_img_fbo.draw(0, 0); }
             else{ b_img_fbo[0].draw(0, 0); }
-        
             ofDisableAlphaBlending();
+            ofPopStyle();
         }else {
             ofPushStyle();
             ofFill();
@@ -323,6 +327,7 @@
             ofDrawBitmapString(b_val_text, v_pos);
             ofPopStyle();
         }
+        ofPopStyle();
         ofPopMatrix();
     }
     

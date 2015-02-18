@@ -137,6 +137,7 @@ private:
     ofxSimpleButton *minusButton;
     
     ofRectangle s_rect;
+    ofFbo s_back;
     float max_v;
     float min_v;
     float v;
@@ -145,13 +146,17 @@ private:
     float s_v;
     
     bool useCountButton;
-    bool hideValue;
+    bool bHideValue;
+    bool bAppear;
+    bool imgBack;
+    bool isVertical;
+    
     ofColor s_c;
     
     string s_name;
     
 public:
-    explicit ofxSimpleSlider():min_v(0.0), max_v(1.0),d_v(0.5),s_v(100.0),useCountButton(false),hideValue(false),s_c(ofColor::white){}
+    explicit ofxSimpleSlider():min_v(0.0), max_v(1.0),d_v(0.5),s_v(100.0),useCountButton(false),bHideValue(false),bAppear(true),s_c(ofColor::white), imgBack(false), isVertical(false){}
     ~ofxSimpleSlider() {
         if(useCountButton){
             delete plusButton;
@@ -159,7 +164,7 @@ public:
         }
         delete sliderButton;
     }
-    void setup(string name, float x, float y, float w, float h, float min, float max, float defalut){
+    void setup(string name, float x, float y, float w, float h, float min, float max, float default_v){
         s_name = name;
         s_rect.set(x, y, w, h);
         
@@ -169,13 +174,13 @@ public:
         
         min_v = min;
         max_v = max;
-        if (defalut < min_v || defalut > max_v) { d_v = (max_v - min_v)/2.0; }
-        else { d_v = defalut; }
+        if (default_v < min_v || default_v > max_v) { d_v = (max_v - min_v)/2.0; }
+        else { d_v = default_v; }
         m_v = (max_v - min_v) / s_v;
         v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
         sliderButton->setPos(v, sliderButton->getY());
         
-        if (ofGetTargetPlatform() == OF_TARGET_IOS) {
+        if (ofGetTargetPlatform() == OF_TARGET_IOS || ofGetTargetPlatform() == OF_TARGET_ANDROID) {
             ofAddListener(ofEvents().touchDown, this, &ofxSimpleSlider::touchDown);
             ofAddListener(ofEvents().touchMoved, this, &ofxSimpleSlider::touchMoved);
             ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleSlider::touchDoubleTap);
@@ -190,11 +195,69 @@ public:
         ofAddListener(ofEvents().draw, this, &ofxSimpleSlider::render);
     }
     
+    void setup(string route, float x, float y, float min, float max, float default_v, string buttonRoute , bool vertical = false){
+        
+        ofImage b;
+        b.loadImage(route);
+        float w = b.getWidth();
+        float h = b.getHeight();
+        s_back.allocate(w, h);
+        s_back.begin();
+        ofClear(255);
+        s_back.end();
+        
+        s_back.begin();
+        ofSetColor(255);
+        b.draw(0, 0);
+        s_back.end();
+        
+        s_rect.set(x, y, w, h);
+        imgBack = true;
+        
+        sliderButton = new ofxSimpleButton();
+        sliderButton->setup(x, y, buttonRoute, true, true);
+        sliderButton->show();
+        
+        min_v = min;
+        max_v = max;
+        if (default_v < min_v || default_v > max_v) { d_v = (max_v - min_v)/2.0; }
+        else { d_v = default_v; }
+        m_v = (max_v - min_v) / s_v;
+        v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+        sliderButton->setPos(v, sliderButton->getY());
+        
+        if (ofGetTargetPlatform() == OF_TARGET_IOS || ofGetTargetPlatform() == OF_TARGET_ANDROID) {
+            ofAddListener(ofEvents().touchDown, this, &ofxSimpleSlider::touchDown);
+            ofAddListener(ofEvents().touchMoved, this, &ofxSimpleSlider::touchMoved);
+            ofAddListener(ofEvents().touchDoubleTap, this, &ofxSimpleSlider::touchDoubleTap);
+            ofAddListener(ofEvents().touchUp, this, &ofxSimpleSlider::touchUp);
+        }else{
+            ofAddListener(ofEvents().mousePressed , this, &ofxSimpleSlider::mousePressed);
+            ofAddListener(ofEvents().mouseReleased, this, &ofxSimpleSlider::mouseReleased);
+            ofAddListener(ofEvents().mouseMoved, this, &ofxSimpleSlider::mouseMoved);
+            ofAddListener(ofEvents().mouseDragged, this, &ofxSimpleSlider::mouseDragged);
+        }
+        
+        isVertical = vertical;
+        
+    }
+    
     void setDivide(float s) { m_v = (max_v - min_v) / s; }
     void setAmount(float a) { m_v = a; }
     void setColor(const ofColor &c) {
         s_c = c;
-        sliderButton->setColor(s_c);
+    }
+    
+    void setButtonColor(const ofColor &c){
+        sliderButton->setColor(c);
+    }
+    
+    void setToggleColor(const ofColor &c){
+        sliderButton->setToggleColor(c);
+        if (useCountButton) {
+            plusButton->setToggleColor(c);
+            minusButton->setToggleColor(c);
+        }
     }
     
     void showButtons() {
@@ -215,7 +278,27 @@ public:
         minusButton->setColor(s_c);
     }
     
-    void update(){ }
+    void hide() {
+        bAppear = false;
+        sliderButton->hide();
+        if (useCountButton) {
+            plusButton->hide();
+            minusButton->hide();
+        }
+        hideValue(true);
+    }
+    
+    void show() {
+        bAppear = true;
+        sliderButton->show();
+        if (useCountButton) {
+            plusButton->show();
+            minusButton->show();
+        }
+        
+    }
+    
+    void hideValue(bool hide) { bHideValue = hide; }
     
     void hideButtons() {
         plusButton->hide();
@@ -223,26 +306,30 @@ public:
     }
     
     void mouseDragged(int x, int y){
-        setButtonPos(x, y);
+        if (bAppear) {
+            setButtonPos(x, y);
+        }
     }
     
     void mousePressed(int x, int y){
-        setButtonPos(x, y);
-        
-        if (useCountButton) {
-            minusButton->mousePressed(x, y);
-            plusButton->mousePressed(x, y);
+        if (bAppear) {
+            setButtonPos(x, y);
             
-            if (minusButton->getIsSelect()) {
-                d_v -= m_v;
-                if (d_v <= min_v) d_v = min_v;
-                v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
-                sliderButton->setPos(v, sliderButton->getY());
-            }else if (plusButton->getIsSelect()){
-                d_v += m_v;
-                if (d_v >= max_v) d_v = max_v;
-                v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
-                sliderButton->setPos(v, sliderButton->getY());
+            if (useCountButton) {
+                minusButton->mousePressed(x, y);
+                plusButton->mousePressed(x, y);
+                
+                if (minusButton->getIsSelect()) {
+                    d_v -= m_v;
+                    if (d_v <= min_v) d_v = min_v;
+                    v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+                    sliderButton->setPos(v, sliderButton->getY());
+                }else if (plusButton->getIsSelect()){
+                    d_v += m_v;
+                    if (d_v >= max_v) d_v = max_v;
+                    v = ofMap(d_v, min_v, max_v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht());
+                    sliderButton->setPos(v, sliderButton->getY());
+                }
             }
         }
     }
@@ -255,13 +342,43 @@ public:
         
     }
     
+    bool minusPressed(){
+        return minusButton->getIsSelect();
+    }
+    
+    bool plusPressed(){
+        return plusButton->getIsSelect();
+    }
+    
+    bool getIsSelect(){
+        return sliderButton->getIsSelect();
+    }
+    
+    void setButtonPos(int x){
+        v = x - sliderButton->getWidht()/2;
+        if (v <= s_rect.x) v = s_rect.x;
+        if (v >= s_rect.x + s_rect.getWidth() - sliderButton->getWidht()) v = s_rect.x + s_rect.getWidth() - sliderButton->getWidht();
+        //d_v = ofMap(v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht(), min_v, max_v);
+        sliderButton->setPos(v, sliderButton->getY());
+    }
+    
     void setButtonPos(int x, int y){
-        if (y >= s_rect.y && y <= s_rect.y + s_rect.getHeight() && x >= s_rect.x && x <= s_rect.x + s_rect.getWidth()) {
-            v = x - sliderButton->getWidht()/2;
-            if (v <= s_rect.x) v = s_rect.x;
-            if (v >= s_rect.x + s_rect.getWidth() - sliderButton->getWidht()) v = s_rect.x + s_rect.getWidth() - sliderButton->getWidht();
-            d_v = ofMap(v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht(), min_v, max_v);
-            sliderButton->setPos(v, sliderButton->getY());
+        if (isVertical) {
+            if (y >= s_rect.y && y <= s_rect.y + s_rect.getHeight() && x >= s_rect.x && x <= s_rect.x + s_rect.getWidth()) {
+                v = y - sliderButton->getHeight()/2;
+                if (v <= s_rect.y) v = s_rect.y;
+                if (v >= s_rect.y + s_rect.getHeight() - sliderButton->getHeight()) v = s_rect.y + s_rect.getHeight() - sliderButton->getHeight();
+                d_v = ofMap(v, s_rect.y, s_rect.y + s_rect.getHeight() - sliderButton->getHeight(), min_v, max_v);
+                sliderButton->setPos(sliderButton->getX(), v);
+            }
+        }else{
+            if (y >= s_rect.y && y <= s_rect.y + s_rect.getHeight() && x >= s_rect.x && x <= s_rect.x + s_rect.getWidth()) {
+                v = x - sliderButton->getWidht()/2;
+                if (v <= s_rect.x) v = s_rect.x;
+                if (v >= s_rect.x + s_rect.getWidth() - sliderButton->getWidht()) v = s_rect.x + s_rect.getWidth() - sliderButton->getWidht();
+                d_v = ofMap(v, s_rect.x, s_rect.x + s_rect.getWidth() - sliderButton->getWidht(), min_v, max_v);
+                sliderButton->setPos(v, sliderButton->getY());
+            }
         }
     }
     
@@ -278,27 +395,38 @@ public:
     
     void render(){
         
-        sliderButton->render();
-        
-        ofPushStyle();
-        ofNoFill();
-        ofSetColor(s_c);
-        ofRect(s_rect);
-        ofPopStyle();
-        
-        if(useCountButton){
-            plusButton->render();
-            minusButton->render();
-        }
-        if (!hideValue) {
-            ofPushStyle();
-            ofSetColor(s_c);
-            ofDrawBitmapString(s_name + " "+ofToString(d_v), s_rect.x, s_rect.y - 2);
-            ofPopStyle();
+        if (bAppear) {
+            
+            if(imgBack){
+                ofSetColor(255);
+                s_back.draw(s_rect.x, s_rect.y);
+            }
+            
+            sliderButton->render();
+            
+            if (!imgBack) {
+                ofPushStyle();
+                ofNoFill();
+                ofSetColor(s_c);
+                ofRect(s_rect);
+                ofPopStyle();
+            }
+            
+            if(useCountButton){
+                plusButton->render();
+                minusButton->render();
+            }
+            if (!bHideValue) {
+                ofPushStyle();
+                ofSetColor(s_c);
+                ofDrawBitmapString(s_name + " "+ofToString(d_v), s_rect.x, s_rect.y - 2);
+                ofPopStyle();
+            }
         }
     }
     
     float getValue() { return d_v; }
+    bool getIsAppear() const { return bAppear; }
     
 };
 

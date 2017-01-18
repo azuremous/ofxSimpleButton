@@ -107,16 +107,17 @@
     b_img_fbo.clear();
     
     ofImage b;
-    if(b.loadImage(b_img_route+".png")) {
+    
+    if(b.load(b_img_route+".png")) {
         
         ofFbo img_fbo;
         img_fbo.allocate(b.getWidth(), b.getHeight());
+        
         img_fbo.begin();
         ofClear(255,0);
         img_fbo.end();
         
         img_fbo.begin();
-        ofSetColor(255);
         b.draw(0, 0);
         img_fbo.end();
         
@@ -126,7 +127,7 @@
         return false;
     }
     
-    if(b.loadImage(b_img_route+"_.png")){
+    if(b.load(b_img_route+"_.png")){
         
         ofFbo img_fbo;
         img_fbo.allocate(b.getWidth(), b.getHeight());
@@ -135,7 +136,6 @@
         img_fbo.end();
         
         img_fbo.begin();
-        ofSetColor(255);
         b.draw(0, 0);
         img_fbo.end();
         
@@ -144,7 +144,6 @@
     
     if (b_img_fbo.size() > 0 && !bAppear) {
         setAppear(true);
-        
         float w = b_img_fbo[0].getWidth();
         float h = b_img_fbo[0].getHeight();
         b_rect.set(x, y, w, h);
@@ -255,7 +254,7 @@
 /*public */void ofxSimpleButton::setAsAnimationButton(int time){
     
     ofImage a;
-    if(!a.loadImage(b_img_route+"__.png")) return;
+    if(!a.load(b_img_route+"__.png")) return;
     
     a_img_fbo.allocate(a.getWidth(), a.getHeight());
     
@@ -287,27 +286,29 @@
     if (bRender) {
         
         ofPushMatrix();
-        ofPushStyle();
         ofTranslate(b_rect.x, b_rect.y);
         
         if (b_img_fbo.size() > 0 && b_shape == BUTTON_IMAGE) {
             ofPushStyle();
             ofEnableAlphaBlending();
-            ofSetColor(b_c, 255);
+            ofSetColor(255, 255);
            
             if (b_img_fbo.size() == 2 && bToggle) { b_img_fbo[1].draw(0, 0); }
             else if (bAnimation && bang) { a_img_fbo.draw(0, 0); }
             else{ b_img_fbo[0].draw(0, 0); }
+        
             ofDisableAlphaBlending();
             ofPopStyle();
         }else {
             ofPushStyle();
-            ofFill();
+            ofNoFill();
             updateButtonColor();
             if (b_shape == BUTTON_CIRCLE) {
-                ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
+                ofDrawEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
+                //ofEllipse(b_rect.width/2, b_rect.height/2, b_rect.width, b_rect.height);
             }else if (b_shape == BUTTON_RECT){
-                ofRect(0, 0, b_rect.width, b_rect.height);
+                ofDrawRectangle(0, 0, b_rect.width, b_rect.height);
+                //ofRect(0, 0, b_rect.width, b_rect.height);
             }else if (b_shape == BUTTON_CUSTOM){
                 //using vertex?
             }
@@ -327,7 +328,6 @@
             ofDrawBitmapString(b_val_text, v_pos);
             ofPopStyle();
         }
-        ofPopStyle();
         ofPopMatrix();
     }
     

@@ -126,7 +126,8 @@ public:
     float getY() const { return b_rect.y; }
     float getWidht() const { return b_rect.width; }
     float getHeight() const {return b_rect.height; }
-    
+
+	ofEvent<void> mousePressedEvent;
 };
 
 class ofxSimpleSlider{

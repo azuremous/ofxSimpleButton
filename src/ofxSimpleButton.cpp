@@ -366,6 +366,7 @@
 /*public */void ofxSimpleButton::mousePressed(float x, float y)
 {
     if (isInside(x, y)) {
+		ofNotifyEvent(mousePressedEvent, this);
         buttonAction(true);
     }
 }

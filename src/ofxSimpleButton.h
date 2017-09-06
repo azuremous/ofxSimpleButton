@@ -40,6 +40,7 @@ private:
     string b_info_text;
     string b_val_text;
     string b_img_route;
+    string b_img_extension;
     
     bool useName;
     bool useValue;
@@ -58,6 +59,8 @@ private:
     
     int aniTime;
     int changeTime;
+    
+    int alpha;
     
 protected:
     void resetAniTime(bool start);
@@ -79,13 +82,15 @@ protected:
     
     void buttonAction(bool b);
     bool isInside(float x, float y);
+    
+    int checkExtension(string n);
 public:
     explicit ofxSimpleButton();
     virtual~ofxSimpleButton();
     
     bool setup(float x, float y, float w = 50, float h = 50, bool useEvent = false);
     bool setup(float x, float y, float w, float h, bool useEvent, bool manualRender, TYPE_BUTTONS type = TYPE_BUTTON, BUTTON_SHAPES shape = BUTTON_RECT, const ofColor &c = ofColor::white);
-    bool setup(float x, float y, string imgRoute, bool useEvent = true, bool manualRender = false, TYPE_BUTTONS type = TYPE_BUTTON);
+    bool setup(float x, float y, string imgRoute, bool useAnimation = false, bool useEvent = true, bool manualRender = false, TYPE_BUTTONS type = TYPE_BUTTON);
     
     void setAppear(bool show);
     void setRender(bool magic);
@@ -93,6 +98,8 @@ public:
     void setShape(BUTTON_SHAPES shape);
     void setColor(const ofColor &c);
     void setToggleColor(const ofColor &c);
+    void setAlpha(int a);
+    void setAlpha(float a);
     void setPos(const ofPoint & p);
     void setPos(float x, float y);
     void setName(string n, float n_x = 0, float n_y = -10);

@@ -22,8 +22,10 @@
 ,startAni(false)
 ,aniTime(0)
 ,changeTime(500)
+,alpha(255)
 ,b_c(ofColor::white)
 ,b_t_c(ofColor::yellow)
+,b_img_extension(".png")
 {}
 
 //--------------------------------------------------------------
@@ -98,17 +100,17 @@
 }
 
 //--------------------------------------------------------------
-/*public */bool ofxSimpleButton::setup(float x, float y, string imgRoute, bool useEvent, bool manualRender, TYPE_BUTTONS type)
+/*public */bool ofxSimpleButton::setup(float x, float y, string imgRoute, bool useAnimation, bool useEvent, bool manualRender, TYPE_BUTTONS type)
 {
     setType(type);
     setShape(BUTTON_IMAGE);
-    b_img_route = imgRoute;
-    //load image and add to vector
     b_img_fbo.clear();
+    
+    checkExtension(imgRoute);
     
     ofImage b;
     
-    if(b.load(b_img_route+".png")) {
+    if(b.load(b_img_route + b_img_extension)) {
         
         ofFbo img_fbo;
         img_fbo.allocate(b.getWidth(), b.getHeight());
@@ -127,20 +129,25 @@
         return false;
     }
     
-    if(b.load(b_img_route+"_.png")){
-        
-        ofFbo img_fbo;
-        img_fbo.allocate(b.getWidth(), b.getHeight());
-        img_fbo.begin();
-        ofClear(255,0);
-        img_fbo.end();
-        
-        img_fbo.begin();
-        b.draw(0, 0);
-        img_fbo.end();
-        
-        b_img_fbo.push_back(img_fbo);
+    
+    if(useAnimation){
+        if(b.load(b_img_route + "_" + b_img_extension)){
+            
+            ofFbo img_fbo;
+            img_fbo.allocate(b.getWidth(), b.getHeight());
+            img_fbo.begin();
+            ofClear(255,0);
+            img_fbo.end();
+            
+            img_fbo.begin();
+            b.draw(0, 0);
+            img_fbo.end();
+            
+            b_img_fbo.push_back(img_fbo);
+        }
     }
+    
+    
     
     if (b_img_fbo.size() > 0 && !bAppear) {
         setAppear(true);
@@ -211,6 +218,17 @@
 }
 
 //--------------------------------------------------------------
+/*public */void ofxSimpleButton::setAlpha(int a){
+    alpha = a;
+}
+
+//--------------------------------------------------------------
+/*public */void ofxSimpleButton::setAlpha(float a){
+    int result = (int)ofMap(a, 0.0, 1.0, 0., 255.);
+    setAlpha(result);
+}
+
+//--------------------------------------------------------------
 /*public */void ofxSimpleButton::setPos(const ofPoint &p)
 {
     setPos(p.x, p.y);
@@ -254,7 +272,7 @@
 /*public */void ofxSimpleButton::setAsAnimationButton(int time){
     
     ofImage a;
-    if(!a.load(b_img_route+"__.png")) return;
+    if(!a.load(b_img_route+"__"+b_img_extension)) return;
     
     a_img_fbo.allocate(a.getWidth(), a.getHeight());
     
@@ -291,7 +309,7 @@
         if (b_img_fbo.size() > 0 && b_shape == BUTTON_IMAGE) {
             ofPushStyle();
             ofEnableAlphaBlending();
-            ofSetColor(255, 255);
+            ofSetColor(255, alpha);
            
             if (b_img_fbo.size() == 2 && bToggle) { b_img_fbo[1].draw(0, 0); }
             else if (bAnimation && bang) { a_img_fbo.draw(0, 0); }
@@ -317,14 +335,14 @@
         
         if (useName) {
             ofPushStyle();
-            ofSetColor(b_c);
+            ofSetColor(b_c, alpha);
             ofDrawBitmapString(b_info_text, n_pos);
             ofPopStyle();
         }
         
         if (useValue) {
             ofPushStyle();
-            ofSetColor(b_c);
+            ofSetColor(b_c, alpha);
             ofDrawBitmapString(b_val_text, v_pos);
             ofPopStyle();
         }
@@ -496,8 +514,8 @@
 //--------------------------------------------------------------
 /*protected */void ofxSimpleButton::updateButtonColor(){
 
-    if (bToggle) { ofSetColor(b_t_c, 255); }
-    else { ofSetColor(b_c, 255); }
+    if (bToggle) { ofSetColor(b_t_c, alpha); }
+    else { ofSetColor(b_c, alpha); }
 }
 
 //--------------------------------------------------------------
@@ -508,6 +526,24 @@
     }else if (b_type == TYPE_TOGGLE) {
         bToggle = !bToggle;
     }
+}
+
+//--------------------------------------------------------------
+/*protected */int ofxSimpleButton::checkExtension(string n){
+    int result;
+    int extensionFinder[3];
+    
+    string extensionType[] = { ".png", ".jpg", ".jpeg" };
+    
+    for(int i = 0; i < 3; i++){
+        extensionFinder[i] = n.find(extensionType[i]);
+        if(extensionFinder[i] != string::npos){
+            result = i;
+            b_img_extension = extensionType[i];
+            b_img_route.append(n,0, extensionFinder[i]);
+        }
+    }
+    return result;
 }
 
 //--------------------------------------------------------------
